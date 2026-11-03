@@ -1,0 +1,8 @@
+{
+  "name": "West End Star Academy ",
+  "description": "(CBC) management portal for West End Star Academy Nakuru",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

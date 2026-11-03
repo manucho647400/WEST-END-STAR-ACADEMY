@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>West End Star Academy - CBC School Management System</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @media print {
+      body * { visibility: hidden; }
+      #printable-receipt, #printable-receipt * { visibility: visible; }
+      #printable-receipt { position: absolute; left: 0; top: 0; width: 100%; border: none !important; box-shadow: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+
+  <!-- TOP HEADER -->
+  <header class="bg-emerald-800 text-white shadow-lg sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-white text-emerald-800 flex items-center justify-center font-black text-xl shadow-inner">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <div>
+          <h1 class="text-lg sm:text-xl font-bold tracking-tight leading-none">West End Star Academy</h1>
+          <p class="text-xs text-emerald-200 mt-1">Competency-Based Curriculum (CBC) Integrated Portal</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2 sm:space-x-4">
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-700/80 text-emerald-100 border border-emerald-600">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>
+          Term 1 &bull; 2025 Academic Year
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAVIGATION TABS -->
+  <nav class="bg-white border-b border-slate-200 shadow-sm sticky top-[61px] z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex space-x-2 sm:space-x-8 overflow-x-auto text-sm font-medium">
+      <button onclick="switchTab('dashboard')" id="tab-dashboard" class="py-3 px-2 border-b-2 border-emerald-600 text-emerald-700 flex items-center space-x-2 whitespace-nowrap">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>Dashboard</span>
+      </button>
+      <button onclick="switchTab('learners')" id="tab-learners" class="py-3 px-2 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-2 whitespace-nowrap">
+        <i class="fa-solid fa-users"></i>
+        <span>Enrolment & Learners</span>
+      </button>
+      <button onclick="switchTab('assessments')" id="tab-assessments" class="py-3 px-2 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-2 whitespace-nowrap">
+        <i class="fa-solid fa-award"></i>
+        <span>CBC Rubrics</span>
+      </button>
+      <button onclick="switchTab('finance')" id="tab-finance" class="py-3 px-2 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-2 whitespace-nowrap">
+        <i class="fa-solid fa-receipt"></i>
+        <span>Bursar & Payments</span>
+      </button>
+      <button onclick="switchTab('parent')" id="tab-parent" class="py-3 px-2 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-2 whitespace-nowrap">
+        <i class="fa-solid fa-user-shield"></i>
+        <span>Parent Portal</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MAIN BODY CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full">
+
+    <!-- 1. DASHBOARD VIEW -->
+    <div id="view-dashboard" class="space-y-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs uppercase font-semibold text-slate-400 tracking-wider">Total Enrolled</p>
+            <p class="text-2xl font-bold text-slate-800 mt-1" id="stat-total-students">0</p>
+            <p class="text-xs text-emerald-600 mt-1"><i class="fa-solid fa-circle-check"></i> Active Learners</p>
+          </div>
+          <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl">
+            <i class="fa-solid fa-graduation-cap"></i>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs uppercase font-semibold text-slate-400 tracking-wider">Total Collected</p>
+            <p class="text-2xl font-bold text-emerald-700 mt-1" id="stat-total-collected">KES 0</p>
+            <p class="text-xs text-slate-400 mt-1">Cash &amp; Bank &amp; M-Pesa</p>
+          </div>
+          <div class="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center text-xl">
+            <i class="fa-solid fa-vault"></i>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs uppercase font-semibold text-slate-400 tracking-wider">Outstanding Balance</p>
+            <p class="text-2xl font-bold text-amber-700 mt-1" id="stat-fee-balance">KES 0</p>
+            <p class="text-xs text-amber-600 mt-1"><i class="fa-solid fa-triangle-exclamation"></i> Pending clearance</p>
+          </div>
+          <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-xl">
+            <i class="fa-solid fa-scale-unbalanced"></i>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs uppercase font-semibold text-slate-400 tracking-wider">CBC Rubrics</p>
+            <p class="text-2xl font-bold text-slate-800 mt-1" id="stat-total-assessments">0</p>
+            <p class="text-xs text-emerald-600 mt-1">Exceeding &amp; Meeting Expectations</p>
+          </div>
+          <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl">
+            <i class="fa-solid fa-award"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Banner -->
+      <div class="bg-gradient-to-r from-emerald-800 to-teal-800 rounded-2xl p-6 text-white shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-bold">West End Star Academy CBC Registry</h2>
+          <p class="text-emerald-100 text-sm mt-1 max-w-xl">
+            Accredited CBC institution. Instant learner enrolment, rubric assessment entry, fee clearance receipt generation, and parent ledger lookups.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <button onclick="openEnrollModal()" class="px-4 py-2.5 bg-white text-emerald-800 hover:bg-emerald-50 rounded-lg font-bold text-sm shadow transition">
+            <i class="fa-solid fa-user-plus mr-1"></i> Enroll New Learner
+          </button>
+          <button onclick="openPaymentModal()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-sm shadow transition">
+            <i class="fa-solid fa-receipt mr-1"></i> Record Payment
+          </button>
+        </div>
+      </div>
+
+      <!-- Recent Payments & Learners Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Recent Payments -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="font-bold text-slate-800 flex items-center">
+              <i class="fa-solid fa-money-bill-wave text-emerald-600 mr-2"></i> Recent Receipts &amp; Payments
+            </h3>
+            <button onclick="switchTab('finance')" class="text-xs text-emerald-600 font-semibold hover:underline">View All</button>
+          </div>
+          <div class="divide-y divide-slate-100 overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-50 text-slate-400 text-xs uppercase font-medium">
+                <tr>
+                  <th class="py-2.5 px-4">Receipt #</th>
+                  <th class="py-2.5 px-4">Learner</th>
+                  <th class="py-2.5 px-4">Amount</th>
+                  <th class="py-2.5 px-4">Method</th>
+                  <th class="py-2.5 px-4 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="recent-payments-tbody" class="divide-y divide-slate-100 text-slate-600">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- CBC Performance Overview -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+            <h3 class="font-bold text-slate-800 flex items-center">
+              <i class="fa-solid fa-chart-simple text-blue-600 mr-2"></i> CBC Performance Scale Distribution
+            </h3>
+            <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">KNEC Standards</span>
+          </div>
+          <div class="space-y-4 text-sm">
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span class="text-emerald-700">Level 4: Exceeding Expectation (EE)</span>
+                <span id="ee-count" class="text-emerald-800">0</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2.5">
+                <div id="ee-bar" class="bg-emerald-600 h-2.5 rounded-full" style="width: 45%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span class="text-blue-700">Level 3: Meeting Expectation (ME)</span>
+                <span id="me-count" class="text-blue-800">0</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2.5">
+                <div id="me-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 40%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span class="text-amber-700">Level 2: Approaching Expectation (AE)</span>
+                <span id="ae-count" class="text-amber-800">0</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2.5">
+                <div id="ae-bar" class="bg-amber-500 h-2.5 rounded-full" style="width: 12%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span class="text-red-700">Level 1: Below Expectation (BE)</span>
+                <span id="be-count" class="text-red-800">0</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2.5">
+                <div id="be-bar" class="bg-red-500 h-2.5 rounded-full" style="width: 3%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. LEARNERS / ENROLMENT VIEW -->
+    <div id="view-learners" class="space-y-6 hidden">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-slate-800">Learners Enrolment &amp; Roster</h2>
+          <p class="text-slate-500 text-sm">Official student directory for West End Star Academy.</p>
+        </div>
+        <button onclick="openEnrollModal()" class="px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg font-bold text-sm shadow transition flex items-center">
+          <i class="fa-solid fa-plus-circle mr-2"></i> Enroll Learner
+        </button>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div class="relative w-full md:w-80">
+          <i class="fa-solid fa-search absolute left-3 top-3 text-slate-400 text-sm"></i>
+          <input type="text" id="learner-search-input" onkeyup="renderLearners()" placeholder="Search by name, Reg No, or NEMIS UPI..." class="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
+        <div class="flex items-center gap-3 w-full md:w-auto">
+          <select id="grade-filter" onchange="renderLearners()" class="px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <option value="">All Grades / Levels</option>
+            <option value="Reception">Reception</option>
+            <option value="Playgroup">Playgroup</option>
+            <option value="PP1">PP1</option>
+            <option value="PP2">PP2</option>
+            <option value="Grade 1">Grade 1</option>
+            <option value="Grade 2">Grade 2</option>
+            <option value="Grade 3">Grade 3</option>
+            <option value="Grade 4">Grade 4</option>
+            <option value="Grade 5">Grade 5</option>
+            <option value="Grade 6">Grade 6</option>
+            <option value="Grade 7">Grade 7 (JSS)</option>
+            <option value="Grade 8">Grade 8 (JSS)</option>
+            <option value="Grade 9">Grade 9 (JSS)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Learners Table -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-semibold border-b border-slate-200">
+              <tr>
+                <th class="py-3 px-4">Reg No</th>
+                <th class="py-3 px-4">Full Name</th>
+                <th class="py-3 px-4">Grade / Class</th>
+                <th class="py-3 px-4">Gender</th>
+                <th class="py-3 px-4">NEMIS / UPI</th>
+                <th class="py-3 px-4">Guardian Contact</th>
+                <th class="py-3 px-4 text-right">Fee Balance</th>
+                <th class="py-3 px-4 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="learners-tbody" class="divide-y divide-slate-100">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. CBC RUBRICS ASSESSMENTS VIEW -->
+    <div id="view-assessments" class="space-y-6 hidden">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-slate-800">CBC Competency Assessments</h2>
+          <p class="text-slate-500 text-sm">Competency rubrics evaluating core learning areas and developmental skills.</p>
+        </div>
+        <button onclick="openAssessmentModal()" class="px-4 py-2.5 bg-blue-700 hover:bg-blue-800 text-white rounded-lg font-bold text-sm shadow transition flex items-center">
+          <i class="fa-solid fa-plus-circle mr-2"></i> Record Assessment
+        </button>
+      </div>
+
+      <!-- Assessments Table -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-semibold border-b border-slate-200">
+              <tr>
+                <th class="py-3 px-4">Learner</th>
+                <th class="py-3 px-4">Learning Area / Subject</th>
+                <th class="py-3 px-4">Strand &amp; Sub-Strand</th>
+                <th class="py-3 px-4">Rubric Level</th>
+                <th class="py-3 px-4">Term</th>
+                <th class="py-3 px-4">Facilitator Remarks</th>
+              </tr>
+            </thead>
+            <tbody id="assessments-tbody" class="divide-y divide-slate-100">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. FINANCE / BURSAR VIEW -->
+    <div id="view-finance" class="space-y-6 hidden">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-slate-800">Bursar &amp; Fee Payments Ledger</h2>
+          <p class="text-slate-500 text-sm">Cash, Direct Bank Deposits, and M-Pesa tracking without third-party paybill constraints.</p>
+        </div>
+        <button onclick="openPaymentModal()" class="px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg font-bold text-sm shadow transition flex items-center">
+          <i class="fa-solid fa-circle-dollar-to-slot mr-2"></i> Record Payment
+        </button>
+      </div>
+
+      <!-- Payments Table -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-semibold border-b border-slate-200">
+              <tr>
+                <th class="py-3 px-4">Receipt No</th>
+                <th class="py-3 px-4">Date</th>
+                <th class="py-3 px-4">Learner</th>
+                <th class="py-3 px-4">Amount Paid</th>
+                <th class="py-3 px-4">Payment Method</th>
+                <th class="py-3 px-4">Ref / Note</th>
+                <th class="py-3 px-4">Remaining Balance</th>
+                <th class="py-3 px-4 text-center">Receipt</th>
+              </tr>
+            </thead>
+            <tbody id="finance-tbody" class="divide-y divide-slate-100">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. PARENT PORTAL VIEW -->
+    <div id="view-parent" class="space-y-6 hidden">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 max-w-2xl mx-auto">
+        <h2 class="text-xl font-bold text-slate-800 flex items-center mb-2">
+          <i class="fa-solid fa-user-lock text-emerald-600 mr-2"></i> Parent &amp; Guardian Ledger Portal
+        </h2>
+        <p class="text-slate-500 text-sm mb-6">Enter learner's Admission / Reg Number or UPI to view balance, fee records, and generate clearance statements.</p>
+        
+        <div class="flex gap-2">
+          <input type="text" id="parent-search-reg" placeholder="e.g. WESA-2025-0101" class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          <button onclick="parentLookup()" class="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg font-bold text-sm shadow transition">
+            Search
+          </button>
+        </div>
+
+        <!-- Result Box -->
+        <div id="parent-result" class="mt-6 hidden border-t border-slate-200 pt-6">
+          <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4">
+            <h3 class="font-bold text-emerald-900 text-lg" id="p-learner-name">-</h3>
+            <div class="grid grid-cols-2 gap-2 text-xs text-emerald-800 mt-2">
+              <div><strong>Reg Number:</strong> <span id="p-learner-reg">-</span></div>
+              <div><strong>Grade / Class:</strong> <span id="p-learner-grade">-</span></div>
+              <div><strong>Guardian:</strong> <span id="p-learner-guardian">-</span></div>
+              <div><strong>Fee Balance:</strong> <span id="p-learner-balance" class="font-bold text-red-700">-</span></div>
+            </div>
+          </div>
+
+          <h4 class="font-bold text-slate-800 text-sm mb-2">Payment History</h4>
+          <div class="border rounded-lg overflow-hidden">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 border-b">
+                <tr>
+                  <th class="p-2">Receipt #</th>
+                  <th class="p-2">Date</th>
+                  <th class="p-2">Amount</th>
+                  <th class="p-2">Action</th>
+                </tr>
+              </thead>
+              <tbody id="parent-payments-tbody" class="divide-y divide-slate-100">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- ENROLL LEARNER MODAL -->
+  <!-- STRICT INSTRUCTION RESPECTED: ONLY ADDS WHAT IS INSERTED, OR LEAVES BLANK -->
+  <!-- REMOVED: Stream/Selection, School House, Guardian Email, Physical Residential Area, Term Fees, Health History -->
+  <div id="enroll-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full p-6 relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeEnrollModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <div class="border-b pb-3 mb-4">
+        <h3 class="text-lg font-bold text-slate-800">Enroll New Learner</h3>
+        <p class="text-xs text-slate-500">West End Star Academy Admissions - Enter details below.</p>
+      </div>
+
+      <form id="enroll-form" onsubmit="handleEnrollSubmit(event)" class="space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Registration No.</label>
+            <input type="text" id="m-reg-no" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">NEMIS / UPI (Optional)</label>
+            <input type="text" id="m-nemis-upi" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Full Student Name *</label>
+          <input type="text" id="m-full-name" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Grade / Class Level *</label>
+            <select id="m-grade" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+              <option value="Reception">Reception</option>
+              <option value="Playgroup">Playgroup</option>
+              <option value="PP1">PP1</option>
+              <option value="PP2">PP2</option>
+              <option value="Grade 1">Grade 1</option>
+              <option value="Grade 2">Grade 2</option>
+              <option value="Grade 3">Grade 3</option>
+              <option value="Grade 4">Grade 4</option>
+              <option value="Grade 5">Grade 5</option>
+              <option value="Grade 6">Grade 6</option>
+              <option value="Grade 7">Grade 7 (JSS)</option>
+              <option value="Grade 8">Grade 8 (JSS)</option>
+              <option value="Grade 9">Grade 9 (JSS)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Gender</label>
+            <select id="m-gender" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+              <option value="">-- Leave Blank --</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Guardian Full Name</label>
+            <input type="text" id="m-guardian-name" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Guardian Phone Number</label>
+            <input type="text" id="m-guardian-phone" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-3 pt-3 border-t">
+          <button type="button" onclick="closeEnrollModal()" class="px-4 py-2 border rounded-lg text-sm text-slate-600 hover:bg-slate-50">Cancel</button>
+          <button type="submit" class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-lg text-sm shadow">Save &amp; Enroll</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- RECORD PAYMENT MODAL -->
+  <div id="payment-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 relative">
+      <button onclick="closePaymentModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <div class="border-b pb-3 mb-4">
+        <h3 class="text-lg font-bold text-slate-800">Record Fee Payment</h3>
+        <p class="text-xs text-slate-500">Generate clearance receipt for West End Star Academy.</p>
+      </div>
+
+      <form id="payment-form" onsubmit="handlePaymentSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Select Learner *</label>
+          <select id="p-learner-select" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Amount (KES) *</label>
+            <input type="number" id="p-amount" min="100" step="50" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Payment Method</label>
+            <select id="p-method" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+              <option value="M-Pesa">M-Pesa</option>
+              <option value="Direct Bank Deposit">Direct Bank Deposit</option>
+              <option value="Cash / Cheque">Cash / Cheque</option>
+              <option value="CDF / County Bursary">CDF / County Bursary</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Reference / Confirmation Code</label>
+          <input type="text" id="p-reference" placeholder="e.g. QKH7189X2Y or Slip No." class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+        </div>
+
+        <div class="flex justify-end space-x-3 pt-3 border-t">
+          <button type="button" onclick="closePaymentModal()" class="px-4 py-2 border rounded-lg text-sm text-slate-600 hover:bg-slate-50">Cancel</button>
+          <button type="submit" class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-lg text-sm shadow">Issue Receipt</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- CBC ASSESSMENT MODAL -->
+  <div id="assessment-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 relative">
+      <button onclick="closeAssessmentModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <div class="border-b pb-3 mb-4">
+        <h3 class="text-lg font-bold text-slate-800">Record CBC Rubric Assessment</h3>
+        <p class="text-xs text-slate-500">Evaluate learner according to national curriculum standard levels.</p>
+      </div>
+
+      <form id="assessment-form" onsubmit="handleAssessmentSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Select Learner *</label>
+          <select id="a-learner-select" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+          </select>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Learning Area / Subject *</label>
+            <select id="a-subject" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+              <option value="Mathematics">Mathematics</option>
+              <option value="English Language Activities">English Language Activities</option>
+              <option value="Kiswahili Language Activities">Kiswahili Language Activities</option>
+              <option value="Science & Technology">Science & Technology</option>
+              <option value="Social Studies">Social Studies</option>
+              <option value="Creative Arts & Sports">Creative Arts & Sports</option>
+              <option value="Religious Education">Religious Education</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Rubric Rating *</label>
+            <select id="a-rubric" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 font-medium">
+              <option value="EE" class="text-emerald-700 font-bold">EE - Exceeding Expectation (Level 4)</option>
+              <option value="ME" class="text-blue-700 font-bold">ME - Meeting Expectation (Level 3)</option>
+              <option value="AE" class="text-amber-700 font-bold">AE - Approaching Expectation (Level 2)</option>
+              <option value="BE" class="text-red-700 font-bold">BE - Below Expectation (Level 1)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Strand / Competency Focus</label>
+          <input type="text" id="a-strand" placeholder="e.g. Numbers & Algebra, Critical Thinking" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Teacher / Facilitator Remarks</label>
+          <textarea id="a-remarks" rows="2" placeholder="Comments on learner autonomy and core skills..." class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500"></textarea>
+        </div>
+
+        <div class="flex justify-end space-x-3 pt-3 border-t">
+          <button type="button" onclick="closeAssessmentModal()" class="px-4 py-2 border rounded-lg text-sm text-slate-600 hover:bg-slate-50">Cancel</button>
+          <button type="submit" class="px-5 py-2 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-lg text-sm shadow">Save Rubric</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- PRINTABLE RECEIPT MODAL -->
+  <div id="receipt-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 relative">
+      <div class="flex justify-between items-center pb-3 border-b mb-4">
+        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Official Payment Voucher</span>
+        <div class="space-x-2">
+          <button onclick="window.print()" class="px-3 py-1 bg-emerald-700 text-white rounded text-xs font-bold hover:bg-emerald-800">
+            <i class="fa-solid fa-print mr-1"></i> Print
+          </button>
+          <button onclick="closeReceiptModal()" class="text-slate-400 hover:text-slate-600 text-sm">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Printable Area -->
+      <div id="printable-receipt" class="border border-slate-300 rounded-xl p-5 bg-white relative">
+        <div class="text-center border-b pb-4 mb-4">
+          <div class="w-12 h-12 mx-auto rounded-xl bg-emerald-800 text-white flex items-center justify-center font-black text-xl mb-1">
+            <i class="fa-solid fa-graduation-cap"></i>
+          </div>
+          <h2 class="text-lg font-black text-slate-900 uppercase tracking-wide">West End Star Academy</h2>
+          <p class="text-xs text-slate-500">P.O. Box 45210 - 00100, Nairobi, Kenya</p>
+          <p class="text-[11px] text-slate-400">Tel: +254 722 000 000 &bull; MOE CBC Reg: WESA/PRI/2024</p>
+          <div class="mt-2 inline-block px-3 py-0.5 bg-emerald-100 text-emerald-800 rounded-full font-bold text-xs uppercase tracking-wider">
+            Official Fee Receipt
+          </div>
+        </div>
+
+        <div class="space-y-2 text-xs">
+          <div class="flex justify-between">
+            <span class="text-slate-500">Receipt Number:</span>
+            <span id="rec-number" class="font-mono font-bold text-slate-800">-</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Date Issued:</span>
+            <span id="rec-date" class="font-medium text-slate-800">-</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Student Name:</span>
+            <span id="rec-student" class="font-bold text-slate-900">-</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Admission / Reg No:</span>
+            <span id="rec-reg" class="font-mono text-slate-800">-</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Payment Channel:</span>
+            <span id="rec-channel" class="font-medium text-slate-800">-</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Reference:</span>
+            <span id="rec-ref" class="font-mono text-slate-800">-</span>
+          </div>
+          
+          <div class="border-t border-b py-3 my-3">
+            <div class="flex justify-between items-center text-sm">
+              <span class="font-bold text-slate-800">Amount Paid:</span>
+              <span id="rec-amount" class="text-base font-black text-emerald-700">-</span>
+            </div>
+          </div>
+
+          <div class="flex justify-between text-xs">
+            <span class="text-slate-500">Outstanding Balance:</span>
+            <span id="rec-balance" class="font-bold text-red-600">-</span>
+          </div>
+        </div>
+
+        <!-- Official Stamp Seal -->
+        <div class="mt-6 pt-4 border-t flex justify-between items-end">
+          <div class="text-[10px] text-slate-400">
+            System Generated Stamp &bull; Valid without physical signature
+          </div>
+          <div class="w-24 h-12 border-2 border-dashed border-emerald-700/60 rounded flex items-center justify-center text-[10px] font-bold text-emerald-800 uppercase tracking-wider rotate-[-5deg]">
+            WESA BURSAR<br>STAMPED
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT STATE & LOGIC -->
+  <script>
+    // Initial State Data
+    let students = [
+      { id: 1, regNo: "WESA-2025-0101", nemisUpi: "UPI-481920", fullName: "Amina Mohamed Noor", grade: "Grade 4", gender: "Female", guardianName: "Fatuma Noor", guardianPhone: "0722112233", feeBalance: 0 },
+      { id: 2, regNo: "WESA-2025-0102", nemisUpi: "UPI-591024", fullName: "Brian Kiprono Koech", grade: "Grade 5", gender: "Male", guardianName: "David Koech", guardianPhone: "0711334455", feeBalance: 4500 },
+      { id: 3, regNo: "WESA-2025-0103", nemisUpi: "UPI-619204", fullName: "Clara Wanjiku Kamau", grade: "Grade 7 (JSS)", gender: "Female", guardianName: "Grace Wanjiku", guardianPhone: "0733556677", feeBalance: 12000 },
+      { id: 4, regNo: "WESA-2025-0104", nemisUpi: "", fullName: "Dan Otieno Omondi", grade: "Grade 3", gender: "Male", guardianName: "Joseph Omondi", guardianPhone: "0700889900", feeBalance: 0 }
+    ];
+
+    let assessments = [
+      { id: 1, studentId: 1, studentName: "Amina Mohamed Noor", subject: "Mathematics", strand: "Number Concepts & Fractions", rubric: "EE", term: "Term 1", remarks: "Demonstrates exemplary speed and peer tutoring." },
+      { id: 2, studentId: 2, studentName: "Brian Kiprono Koech", subject: "Science & Technology", strand: "Living Things & Plants", rubric: "ME", term: "Term 1", remarks: "Accurately classifies local plant specimens." },
+      { id: 3, studentId: 3, studentName: "Clara Wanjiku Kamau", subject: "Creative Arts & Sports", strand: "Indigenous Pottery", rubric: "EE", term: "Term 1", remarks: "Mastery of hand-building clay vessels." },
+      { id: 4, studentId: 4, studentName: "Dan Otieno Omondi", subject: "English Language Activities", strand: "Listening & Speaking", rubric: "ME", term: "Term 1", remarks: "Constructs fluent sentences and shows confidence." }
+    ];
+
+    let payments = [
+      { id: 1, receiptNo: "REC-2025-8801", date: "2025-02-10", studentId: 1, studentName: "Amina Mohamed Noor", regNo: "WESA-2025-0101", amount: 18500, method: "M-Pesa", ref: "RJB928KL01", balanceRemaining: 0 },
+      { id: 2, receiptNo: "REC-2025-8802", date: "2025-02-12", studentId: 2, studentName: "Brian Kiprono Koech", regNo: "WESA-2025-0102", amount: 14000, method: "Direct Bank Deposit", ref: "BNK-492041", balanceRemaining: 4500 },
+      { id: 3, receiptNo: "REC-2025-8803", date: "2025-02-15", studentId: 4, studentName: "Dan Otieno Omondi", regNo: "WESA-2025-0104", amount: 18500, method: "Cash / Cheque", ref: "CHQ-00192", balanceRemaining: 0 }
+    ];
+
+    // Navigation Switcher
+    function switchTab(tab) {
+      const tabs = ['dashboard', 'learners', 'assessments', 'finance', 'parent'];
+      tabs.forEach(t => {
+        const viewEl = document.getElementById('view-' + t);
+        const tabEl = document.getElementById('tab-' + t);
+        if (t === tab) {
+          viewEl.classList.remove('hidden');
+          tabEl.classList.remove('border-transparent', 'text-slate-500');
+          tabEl.classList.add('border-emerald-600', 'text-emerald-700');
+        } else {
+          viewEl.classList.add('hidden');
+          tabEl.classList.remove('border-emerald-600', 'text-emerald-700');
+          tabEl.classList.add('border-transparent', 'text-slate-500');
+        }
+      });
+    }
+
+    // Refresh Dashboard Stats
+    function updateStats() {
+      document.getElementById('stat-total-students').textContent = students.length;
+      const totalCollected = payments.reduce((acc, p) => acc + Number(p.amount), 0);
+      document.getElementById('stat-total-collected').textContent = "KES " + totalCollected.toLocaleString();
+      const totalBalance = students.reduce((acc, s) => acc + Number(s.feeBalance || 0), 0);
+      document.getElementById('stat-fee-balance').textContent = "KES " + totalBalance.toLocaleString();
+      document.getElementById('stat-total-assessments').textContent = assessments.length;
+
+      // Rubric distribution
+      const ee = assessments.filter(a => a.rubric === 'EE').length;
+      const me = assessments.filter(a => a.rubric === 'ME').length;
+      const ae = assessments.filter(a => a.rubric === 'AE').length;
+      const be = assessments.filter(a => a.rubric === 'BE').length;
+      document.getElementById('ee-count').textContent = ee;
+      document.getElementById('me-count').textContent = me;
+      document.getElementById('ae-count').textContent = ae;
+      document.getElementById('be-count').textContent = be;
+
+      // Populate recent payments table on dashboard
+      const recentTbody = document.getElementById('recent-payments-tbody');
+      recentTbody.innerHTML = '';
+      payments.slice(-4).reverse().forEach(p => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50";
+        tr.innerHTML = `
+          <td class="py-2 px-4 font-mono font-bold text-xs text-slate-800">${p.receiptNo}</td>
+          <td class="py-2 px-4 font-medium text-slate-700">${p.studentName}</td>
+          <td class="py-2 px-4 font-bold text-emerald-700">KES ${Number(p.amount).toLocaleString()}</td>
+          <td class="py-2 px-4 text-xs">${p.method}</td>
+          <td class="py-2 px-4 text-right">
+            <button onclick="viewReceipt('${p.receiptNo}')" class="text-emerald-700 font-semibold text-xs hover:underline">
+              <i class="fa-solid fa-receipt mr-1"></i>Receipt
+            </button>
+          </td>
+        `;
+        recentTbody.appendChild(tr);
+      });
+    }
+
+    // Render Learners Directory
+    function renderLearners() {
+      const tbody = document.getElementById('learners-tbody');
+      tbody.innerHTML = '';
+      const query = (document.getElementById('learner-search-input')?.value || '').toLowerCase();
+      const gradeFilter = document.getElementById('grade-filter')?.value || '';
+
+      const filtered = students.filter(s => {
+        const matchesQuery = s.fullName.toLowerCase().includes(query) ||
+                             (s.regNo && s.regNo.toLowerCase().includes(query)) ||
+                             (s.nemisUpi && s.nemisUpi.toLowerCase().includes(query));
+        const matchesGrade = !gradeFilter || s.grade === gradeFilter;
+        return matchesQuery && matchesGrade;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-400">No learners match the criteria</td></tr>`;
+        return;
+      }
+
+      filtered.forEach(s => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50";
+        const balanceColor = s.feeBalance > 0 ? 'text-amber-700 font-bold' : 'text-emerald-700 font-medium';
+        tr.innerHTML = `
+          <td class="py-3 px-4 font-mono font-bold text-xs text-slate-700">${s.regNo || '<span class="text-slate-300">-</span>'}</td>
+          <td class="py-3 px-4 font-semibold text-slate-900">${s.fullName}</td>
+          <td class="py-3 px-4"><span class="px-2 py-0.5 bg-slate-100 rounded text-xs text-slate-700 font-medium">${s.grade}</span></td>
+          <td class="py-3 px-4 text-xs text-slate-500">${s.gender || '<span class="text-slate-300">-</span>'}</td>
+          <td class="py-3 px-4 font-mono text-xs text-slate-500">${s.nemisUpi || '<span class="text-slate-300">-</span>'}</td>
+          <td class="py-3 px-4 text-xs text-slate-600">
+            <div>${s.guardianName || '<span class="text-slate-300">-</span>'}</div>
+            <div class="text-[11px] text-slate-400 font-mono">${s.guardianPhone || ''}</div>
+          </td>
+          <td class="py-3 px-4 text-right ${balanceColor}">KES ${Number(s.feeBalance || 0).toLocaleString()}</td>
+          <td class="py-3 px-4 text-center space-x-2">
+            <button onclick="quickPayStudent(${s.id})" class="text-xs text-emerald-700 hover:text-emerald-900 font-semibold" title="Pay Fees">
+              <i class="fa-solid fa-credit-card"></i>
+            </button>
+            <button onclick="deleteStudent(${s.id})" class="text-xs text-red-500 hover:text-red-700" title="Delete">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Render CBC Assessments
+    function renderAssessments() {
+      const tbody = document.getElementById('assessments-tbody');
+      tbody.innerHTML = '';
+      assessments.forEach(a => {
+        let badgeClass = "bg-slate-100 text-slate-800";
+        let label = a.rubric;
+        if (a.rubric === 'EE') { badgeClass = "bg-emerald-100 text-emerald-800 font-bold"; label = "EE (Exceeding)"; }
+        else if (a.rubric === 'ME') { badgeClass = "bg-blue-100 text-blue-800 font-bold"; label = "ME (Meeting)"; }
+        else if (a.rubric === 'AE') { badgeClass = "bg-amber-100 text-amber-800 font-bold"; label = "AE (Approaching)"; }
+        else if (a.rubric === 'BE') { badgeClass = "bg-red-100 text-red-800 font-bold"; label = "BE (Below)"; }
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50";
+        tr.innerHTML = `
+          <td class="py-3 px-4 font-bold text-slate-800">${a.studentName}</td>
+          <td class="py-3 px-4 font-medium text-slate-700">${a.subject}</td>
+          <td class="py-3 px-4 text-xs text-slate-500">${a.strand || 'General Strand'}</td>
+          <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs ${badgeClass}">${label}</span></td>
+          <td class="py-3 px-4 text-xs text-slate-500">${a.term || 'Term 1'}</td>
+          <td class="py-3 px-4 text-xs text-slate-600 italic">"${a.remarks || '-'}"</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Render Finance / Payments
+    function renderFinance() {
+      const tbody = document.getElementById('finance-tbody');
+      tbody.innerHTML = '';
+      payments.slice().reverse().forEach(p => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50";
+        tr.innerHTML = `
+          <td class="py-3 px-4 font-mono font-bold text-slate-900 text-xs">${p.receiptNo}</td>
+          <td class="py-3 px-4 text-xs text-slate-500">${p.date}</td>
+          <td class="py-3 px-4 font-medium text-slate-800">${p.studentName}</td>
+          <td class="py-3 px-4 font-black text-emerald-700">KES ${Number(p.amount).toLocaleString()}</td>
+          <td class="py-3 px-4 text-xs">${p.method}</td>
+          <td class="py-3 px-4 font-mono text-xs text-slate-500">${p.ref || '-'}</td>
+          <td class="py-3 px-4 text-xs font-bold ${p.balanceRemaining > 0 ? 'text-amber-700' : 'text-emerald-700'}">KES ${Number(p.balanceRemaining).toLocaleString()}</td>
+          <td class="py-3 px-4 text-center">
+            <button onclick="viewReceipt('${p.receiptNo}')" class="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded border border-emerald-200 text-xs font-bold hover:bg-emerald-100">
+              <i class="fa-solid fa-receipt mr-1"></i>View
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Populate Learner Select Dropdowns
+    function populateLearnerDropdowns() {
+      const pSelect = document.getElementById('p-learner-select');
+      const aSelect = document.getElementById('a-learner-select');
+      if (pSelect) {
+        pSelect.innerHTML = '<option value="">-- Choose Learner --</option>' +
+          students.map(s => `<option value="${s.id}">${s.fullName} (${s.regNo}) - Bal: KES ${s.feeBalance}</option>`).join('');
+      }
+      if (aSelect) {
+        aSelect.innerHTML = '<option value="">-- Choose Learner --</option>' +
+          students.map(s => `<option value="${s.id}">${s.fullName} (${s.grade})</option>`).join('');
+      }
+    }
+
+    // Modal Handlers
+    function openEnrollModal() {
+      document.getElementById('enroll-form').reset();
+      // Auto suggest next regNo if blank
+      const nextNum = String(students.length + 1).padStart(4, '0');
+      document.getElementById('m-reg-no').value = `WESA-2025-${nextNum}`;
+      document.getElementById('enroll-modal').classList.remove('hidden');
+    }
+    function closeEnrollModal() {
+      document.getElementById('enroll-modal').classList.add('hidden');
+    }
+
+    function openPaymentModal() {
+      populateLearnerDropdowns();
+      document.getElementById('payment-form').reset();
+      document.getElementById('payment-modal').classList.remove('hidden');
+    }
+    function closePaymentModal() {
+      document.getElementById('payment-modal').classList.add('hidden');
+    }
+
+    function openAssessmentModal() {
+      populateLearnerDropdowns();
+      document.getElementById('assessment-form').reset();
+      document.getElementById('assessment-modal').classList.remove('hidden');
+    }
+    function closeAssessmentModal() {
+      document.getElementById('assessment-modal').classList.add('hidden');
+    }
+
+    // ENROLL SUBMIT - STRICT USER INSTRUCTION:
+    // ADD ONLY WHAT IS INSERTED, LEAVE OTHERS BLANK
+    function handleEnrollSubmit(e) {
+      e.preventDefault();
+      const fullName = document.getElementById('m-full-name').value.trim();
+      if (!fullName) return;
+
+      const newStudent = {
+        id: Date.now(),
+        regNo: document.getElementById('m-reg-no').value.trim(),
+        nemisUpi: document.getElementById('m-nemis-upi').value.trim(),
+        fullName: fullName,
+        grade: document.getElementById('m-grade').value,
+        gender: document.getElementById('m-gender').value,
+        guardianName: document.getElementById('m-guardian-name').value.trim(),
+        guardianPhone: document.getElementById('m-guardian-phone').value.trim(),
+        feeBalance: 15000 // Standard term base fee balance
+      };
+
+      students.unshift(newStudent);
+      closeEnrollModal();
+      renderLearners();
+      updateStats();
+      populateLearnerDropdowns();
+      switchTab('learners');
+    }
+
+    function deleteStudent(id) {
+      if (confirm('Are you sure you want to remove this learner?')) {
+        students = students.filter(s => s.id !== id);
+        renderLearners();
+        updateStats();
+        populateLearnerDropdowns();
+      }
+    }
+
+    function quickPayStudent(studentId) {
+      openPaymentModal();
+      document.getElementById('p-learner-select').value = studentId;
+    }
+
+    // PAYMENT SUBMIT
+    function handlePaymentSubmit(e) {
+      e.preventDefault();
+      const studentId = Number(document.getElementById('p-learner-select').value);
+      const amount = Number(document.getElementById('p-amount').value);
+      const method = document.getElementById('p-method').value;
+      const ref = document.getElementById('p-reference').value.trim();
+
+      const student = students.find(s => s.id === studentId);
+      if (!student) return;
+
+      const newBalance = Math.max(0, (student.feeBalance || 0) - amount);
+      student.feeBalance = newBalance;
+
+      const receiptNo = 'REC-2025-' + Math.floor(1000 + Math.random() * 9000);
+      const today = new Date().toISOString().split('T')[0];
+
+      const newPayment = {
+        id: Date.now(),
+        receiptNo: receiptNo,
+        date: today,
+        studentId: student.id,
+        studentName: student.fullName,
+        regNo: student.regNo,
+        amount: amount,
+        method: method,
+        ref: ref,
+        balanceRemaining: newBalance
+      };
+
+      payments.push(newPayment);
+      closePaymentModal();
+      updateStats();
+      renderLearners();
+      renderFinance();
+      viewReceipt(receiptNo);
+    }
+
+    // ASSESSMENT SUBMIT
+    function handleAssessmentSubmit(e) {
+      e.preventDefault();
+      const studentId = Number(document.getElementById('a-learner-select').value);
+      const student = students.find(s => s.id === studentId);
+      if (!student) return;
+
+      const newAssessment = {
+        id: Date.now(),
+        studentId: student.id,
+        studentName: student.fullName,
+        subject: document.getElementById('a-subject').value,
+        strand: document.getElementById('a-strand').value.trim(),
+        rubric: document.getElementById('a-rubric').value,
+        term: "Term 1",
+        remarks: document.getElementById('a-remarks').value.trim()
+      };
+
+      assessments.unshift(newAssessment);
+      closeAssessmentModal();
+      updateStats();
+      renderAssessments();
+      switchTab('assessments');
+    }
+
+    // VIEW RECEIPT VOUCHER
+    function viewReceipt(receiptNo) {
+      const p = payments.find(x => x.receiptNo === receiptNo);
+      if (!p) return;
+
+      document.getElementById('rec-number').textContent = p.receiptNo;
+      document.getElementById('rec-date').textContent = p.date;
+      document.getElementById('rec-student').textContent = p.studentName;
+      document.getElementById('rec-reg').textContent = p.regNo || '-';
+      document.getElementById('rec-channel').textContent = p.method;
+      document.getElementById('rec-ref').textContent = p.ref || 'N/A';
+      document.getElementById('rec-amount').textContent = 'KES ' + Number(p.amount).toLocaleString();
+      document.getElementById('rec-balance').textContent = 'KES ' + Number(p.balanceRemaining).toLocaleString();
+
+      document.getElementById('receipt-modal').classList.remove('hidden');
+    }
+    function closeReceiptModal() {
+      document.getElementById('receipt-modal').classList.add('hidden');
+    }
+
+    // PARENT PORTAL LOOKUP
+    function parentLookup() {
+      const q = document.getElementById('parent-search-reg').value.trim().toLowerCase();
+      if (!q) return;
+
+      const found = students.find(s => 
+        (s.regNo && s.regNo.toLowerCase() === q) || 
+        (s.nemisUpi && s.nemisUpi.toLowerCase() === q) ||
+        s.fullName.toLowerCase().includes(q)
+      );
+
+      const resBox = document.getElementById('parent-result');
+      if (!found) {
+        alert('No learner found with Reg Number or UPI: ' + q);
+        resBox.classList.add('hidden');
+        return;
+      }
+
+      document.getElementById('p-learner-name').textContent = found.fullName;
+      document.getElementById('p-learner-reg').textContent = found.regNo || 'N/A';
+      document.getElementById('p-learner-grade').textContent = found.grade;
+      document.getElementById('p-learner-guardian').textContent = found.guardianName || 'Unspecified';
+      document.getElementById('p-learner-balance').textContent = 'KES ' + Number(found.feeBalance || 0).toLocaleString();
+
+      const pTbody = document.getElementById('parent-payments-tbody');
+      pTbody.innerHTML = '';
+      const pList = payments.filter(p => p.studentId === found.id);
+
+      if (pList.length === 0) {
+        pTbody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-slate-400">No payment receipts on record</td></tr>`;
+      } else {
+        pList.forEach(p => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="p-2 font-mono font-bold">${p.receiptNo}</td>
+            <td class="p-2 text-slate-500">${p.date}</td>
+            <td class="p-2 font-bold text-emerald-700">KES ${Number(p.amount).toLocaleString()}</td>
+            <td class="p-2">
+              <button onclick="viewReceipt('${p.receiptNo}')" class="text-xs text-emerald-700 font-bold hover:underline">Receipt</button>
+            </td>
+          `;
+          pTbody.appendChild(tr);
+        });
+      }
+
+      resBox.classList.remove('hidden');
+    }
+
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      updateStats();
+      renderLearners();
+      renderAssessments();
+      renderFinance();
+      populateLearnerDropdowns();
+    });
+  </script>
+</body>
+</html>
