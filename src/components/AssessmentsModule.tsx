@@ -15,8 +15,15 @@ import {
   CheckCircle2,
   Calendar,
   Sparkles,
-  RotateCcw
+  RotateCcw,
+  Cloud,
+  ExternalLink
 } from 'lucide-react';
+import { 
+  exportBroadsheetToGoogleDrive, 
+  getDriveAccessToken, 
+  signInWithGoogleDrive 
+} from '../services/googleDriveService';
 import { ReportCard, LearningAreaAssessment, CBCPerformanceLevel } from '../types';
 import { 
   DEFAULT_LEARNING_AREAS_JSS, 
@@ -51,6 +58,8 @@ export const AssessmentsModule: React.FC<AssessmentsModuleProps> = ({
   const [resetSuccessMsg, setResetSuccessMsg] = useState<string | null>(null);
   const [broadsheetFilterGrade, setBroadsheetFilterGrade] = useState<string>('All');
   const [broadsheetSearch, setBroadsheetSearch] = useState<string>('');
+  const [broadsheetDriveSaving, setBroadsheetDriveSaving] = useState(false);
+  const [broadsheetDriveResult, setBroadsheetDriveResult] = useState<{ success: boolean; link?: string; message?: string } | null>(null);
 
   const selectedStudent = students.find(s => s.id === selectedStudentId);
   const existingReport = selectedStudent ? reportCards[selectedStudent.id] : null;
@@ -66,9 +75,9 @@ export const AssessmentsModule: React.FC<AssessmentsModuleProps> = ({
   const [selectedValues, setSelectedValues] = useState<string[]>([]);
 
   const calculateRubric = (total: number): { level: CBCPerformanceLevel; score: number } => {
-    if (total >= 80) return { level: 'EE', };
-    if (total >= 65) return { level: 'ME', };
-    if (total >= 50) return { level: 'AE', };
+    if (total >= 80) return { level: 'EE', score: 4 };
+    if (total >= 65) return { level: 'ME', score: 3 };
+    if (total >= 50) return { level: 'AE', score: 2 };
     return { level: 'BE', score: 1 };
   };
 
@@ -253,7 +262,7 @@ export const AssessmentsModule: React.FC<AssessmentsModuleProps> = ({
       t2o, t2m, t2e, t2Total,
       t3o, t3m, t3e, t3Total,
       grandTotal,
-      maxPossibleMarks: totalExams * ,
+      maxPossibleMarks: totalExams * 100,
       meanScore,
       rubricLevel: grandTotal > 0 ? level : 'BE',
       rubricScore: grandTotal > 0 ? score : 1
@@ -442,25 +451,40 @@ export const AssessmentsModule: React.FC<AssessmentsModuleProps> = ({
                 {/* Term 1 Rank */}
                 <div className="px-2.5 py-1.5 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-950">
                   <span className="text-[9.5px] text-emerald-700 block font-bold uppercase leading-none">Term 1 Rank</span>
-                  <span className="font-mono text-xs font-bold text-emerald-900">
+                  <span className="font-mono text-xs font-bold text-emerald-900 block">
                     {currentT1Rank === 0 ? '00 (Pending)' : `#${currentT1Rank} of ${totalInGrade}`}
                   </span>
+                  <div className="text-[9px] text-emerald-800 font-sans mt-0.5 flex items-center gap-1">
+                    <span title="Term 1 Opener Exam Rank">Op: {currentStudentRankInfo?.rankT1Opener ? `#${currentStudentRankInfo.rankT1Opener}` : '—'}</span>·
+                    <span title="Term 1 Mid Term Exam Rank">Mid: {currentStudentRankInfo?.rankT1Mid ? `#${currentStudentRankInfo.rankT1Mid}` : '—'}</span>·
+                    <span title="Term 1 End Term Exam Rank">End: {currentStudentRankInfo?.rankT1End ? `#${currentStudentRankInfo.rankT1End}` : '—'}</span>
+                  </div>
                 </div>
 
                 {/* Term 2 Rank */}
                 <div className="px-2.5 py-1.5 bg-sky-50 border border-sky-200 rounded-lg text-sky-950">
                   <span className="text-[9.5px] text-sky-700 block font-bold uppercase leading-none">Term 2 Rank</span>
-                  <span className="font-mono text-xs font-bold text-sky-900">
+                  <span className="font-mono text-xs font-bold text-sky-900 block">
                     {currentT2Rank === 0 ? '00 (Pending)' : `#${currentT2Rank} of ${totalInGrade}`}
                   </span>
+                  <div className="text-[9px] text-sky-800 font-sans mt-0.5 flex items-center gap-1">
+                    <span title="Term 2 Opener Exam Rank">Op: {currentStudentRankInfo?.rankT2Opener ? `#${currentStudentRankInfo.rankT2Opener}` : '—'}</span>·
+                    <span title="Term 2 Mid Term Exam Rank">Mid: {currentStudentRankInfo?.rankT2Mid ? `#${currentStudentRankInfo.rankT2Mid}` : '—'}</span>·
+                    <span title="Term 2 End Term Exam Rank">End: {currentStudentRankInfo?.rankT2End ? `#${currentStudentRankInfo.rankT2End}` : '—'}</span>
+                  </div>
                 </div>
 
                 {/* End Term Rank */}
                 <div className="px-2.5 py-1.5 bg-amber-50 border border-amber-200 rounded-lg text-amber-950">
                   <span className="text-[9.5px] text-amber-700 block font-bold uppercase leading-none">End Term Rank</span>
-                  <span className="font-mono text-xs font-bold text-amber-900">
+                  <span className="font-mono text-xs font-bold text-amber-900 block">
                     {currentEndTermRank === 0 ? '00 (Pending)' : `#${currentEndTermRank} of ${totalInGrade}`}
                   </span>
+                  <div className="text-[9px] text-amber-800 font-sans mt-0.5 flex items-center gap-1">
+                    <span title="End Term Opener Exam Rank">Op: {currentStudentRankInfo?.rankT3Opener ? `#${currentStudentRankInfo.rankT3Opener}` : '—'}</span>·
+                    <span title="End Term Mid Term Exam Rank">Mid: {currentStudentRankInfo?.rankT3Mid ? `#${currentStudentRankInfo.rankT3Mid}` : '—'}</span>·
+                    <span title="End Term Final Exam Rank">End: {currentStudentRankInfo?.rankT3End ? `#${currentStudentRankInfo.rankT3End}` : '—'}</span>
+                  </div>
                 </div>
 
                 {/* Grand Total */}
@@ -824,18 +848,46 @@ export const AssessmentsModule: React.FC<AssessmentsModuleProps> = ({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  {/* Rank Badge */}
-                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-center min-w-[90px]">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 w-full sm:w-auto">
+                  {/* Grade Overall Rank */}
+                  <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-center">
                     <span className="text-[10px] text-amber-800 font-bold uppercase block">Grade Rank</span>
-                    <span className="font-mono text-2xl font-black text-amber-900">#{currentRank === 0 ? '00' : currentRank}</span>
-                    <span className="text-[10px] text-amber-700 block font-medium">of {totalInGrade}</span>
+                    <span className="font-mono text-xl font-black text-amber-900">#{currentRank === 0 ? '00' : currentRank}</span>
+                    <span className="text-[9.5px] text-amber-700 block font-medium">of {totalInGrade}</span>
                   </div>
+
+                  {/* Term 1 Rank */}
+                  <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-center">
+                    <span className="text-[10px] text-emerald-800 font-bold uppercase block">Term 1 Rank</span>
+                    <span className="font-mono text-xl font-black text-emerald-950">#{currentT1Rank === 0 ? '00' : currentT1Rank}</span>
+                    <span className="text-[9px] text-emerald-800 block font-medium">
+                      Op:{currentStudentRankInfo?.rankT1Opener ? `#${currentStudentRankInfo.rankT1Opener}` : '—'} M:{currentStudentRankInfo?.rankT1Mid ? `#${currentStudentRankInfo.rankT1Mid}` : '—'} E:{currentStudentRankInfo?.rankT1End ? `#${currentStudentRankInfo.rankT1End}` : '—'}
+                    </span>
+                  </div>
+
+                  {/* Term 2 Rank */}
+                  <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-xl text-center">
+                    <span className="text-[10px] text-sky-800 font-bold uppercase block">Term 2 Rank</span>
+                    <span className="font-mono text-xl font-black text-sky-950">#{currentT2Rank === 0 ? '00' : currentT2Rank}</span>
+                    <span className="text-[9px] text-sky-800 block font-medium">
+                      Op:{currentStudentRankInfo?.rankT2Opener ? `#${currentStudentRankInfo.rankT2Opener}` : '—'} M:{currentStudentRankInfo?.rankT2Mid ? `#${currentStudentRankInfo.rankT2Mid}` : '—'} E:{currentStudentRankInfo?.rankT2End ? `#${currentStudentRankInfo.rankT2End}` : '—'}
+                    </span>
+                  </div>
+
+                  {/* Term 3 Rank */}
+                  <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-center">
+                    <span className="text-[10px] text-amber-800 font-bold uppercase block">Term 3 Rank</span>
+                    <span className="font-mono text-xl font-black text-amber-950">#{currentEndTermRank === 0 ? '00' : currentEndTermRank}</span>
+                    <span className="text-[9px] text-amber-800 block font-medium">
+                      Op:{currentStudentRankInfo?.rankT3Opener ? `#${currentStudentRankInfo.rankT3Opener}` : '—'} M:{currentStudentRankInfo?.rankT3Mid ? `#${currentStudentRankInfo.rankT3Mid}` : '—'} E:{currentStudentRankInfo?.rankT3End ? `#${currentStudentRankInfo.rankT3End}` : '—'}
+                    </span>
+                  </div>
+
                   {/* Mean Score */}
-                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-center min-w-[90px]">
+                  <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-center col-span-2 sm:col-span-1">
                     <span className="text-[10px] text-slate-500 font-bold uppercase block">Mean Score</span>
-                    <span className="font-mono text-2xl font-bold text-slate-900">{existingReport.averageScore}%</span>
-                    <span className="text-[10px] text-slate-400 block font-medium">Out of 100</span>
+                    <span className="font-mono text-xl font-bold text-slate-900">{existingReport.averageScore}%</span>
+                    <span className="text-[9.5px] text-slate-400 block font-medium">Out of 100</span>
                   </div>
                 </div>
               </div>
@@ -1113,6 +1165,46 @@ export const AssessmentsModule: React.FC<AssessmentsModuleProps> = ({
 
               <div className="pt-4 sm:pt-0 flex items-center gap-2">
                 <button
+                  onClick={async () => {
+                    setBroadsheetDriveSaving(true);
+                    setBroadsheetDriveResult(null);
+                    try {
+                      let token = getDriveAccessToken();
+                      if (!token) {
+                        const authRes = await signInWithGoogleDrive();
+                        token = authRes.accessToken;
+                      }
+                      const uploaded = await exportBroadsheetToGoogleDrive(
+                        filteredBroadsheet,
+                        broadsheetFilterGrade === 'All' ? 'All_Grades_Cohort' : broadsheetFilterGrade,
+                        academicYear
+                      );
+                      setBroadsheetDriveResult({
+                        success: true,
+                        link: uploaded.webViewLink,
+                        message: `Saved Broadsheet (${broadsheetFilterGrade}) directly to Google Drive!`
+                      });
+                    } catch (err: any) {
+                      setBroadsheetDriveResult({
+                        success: false,
+                        message: err.message || 'Failed to save broadsheet to Google Drive.'
+                      });
+                    } finally {
+                      setBroadsheetDriveSaving(false);
+                    }
+                  }}
+                  disabled={broadsheetDriveSaving}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors shadow-xs"
+                  title="Export and save CBC Broadsheet CSV to your Google Drive archive"
+                >
+                  {broadsheetDriveSaving ? (
+                    <span className="animate-spin inline-block w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full" />
+                  ) : (
+                    <Cloud className="w-3.5 h-3.5 text-blue-600" />
+                  )}
+                  <span>{broadsheetDriveSaving ? 'Saving...' : 'Save to Drive'}</span>
+                </button>
+                <button
                   onClick={() => {
                     if (window.confirm('Reset all assessment data and rankings on the broadsheet to 00? This clears existing test marks unless re-entered by the teacher.')) {
                       resetAssessmentMarksToZero();
@@ -1133,6 +1225,29 @@ export const AssessmentsModule: React.FC<AssessmentsModuleProps> = ({
                 </button>
               </div>
             </div>
+
+            {/* Google Drive Broadsheet Save Result Banner */}
+            {broadsheetDriveResult && (
+              <div className={`mt-3 p-3 rounded-xl border text-xs flex items-center justify-between gap-3 ${
+                broadsheetDriveResult.success ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-rose-50 border-rose-200 text-rose-900'
+              }`}>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className={`w-4 h-4 ${broadsheetDriveResult.success ? 'text-emerald-600' : 'text-rose-600'}`} />
+                  <span>{broadsheetDriveResult.message}</span>
+                </div>
+                {broadsheetDriveResult.link && (
+                  <a
+                    href={broadsheetDriveResult.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 font-semibold underline text-blue-700 hover:text-blue-800"
+                  >
+                    <span>Open in Drive</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Broadsheet Table */}
@@ -1208,27 +1323,42 @@ export const AssessmentsModule: React.FC<AssessmentsModuleProps> = ({
                           {item.student.grade} ({item.student.section})
                         </td>
 
-                        {/* Term 1 Total & Rank */}
-                        <td className="py-3 px-3 font-mono text-center text-slate-700 bg-emerald-50/20">
-                          <div className="font-bold">{!item.hasT1Entry || item.t1Sum === 0 ? '00' : item.t1Sum}</div>
-                          <div className="text-[10px] text-emerald-800 font-semibold">
-                            {item.rankT1 > 0 ? `Rank #${item.rankT1}` : 'Pending'}
+                        {/* Term 1 Total & Granular Ranks */}
+                        <td className="py-2.5 px-2 font-mono text-center text-slate-700 bg-emerald-50/20">
+                          <div className="font-bold text-slate-900">{!item.hasT1Entry || item.t1Sum === 0 ? '00' : item.t1Sum}</div>
+                          <div className="text-[10px] text-emerald-900 font-bold">
+                            {item.rankT1 > 0 ? `Term 1 #${item.rankT1}` : 'Pending'}
+                          </div>
+                          <div className="text-[9.5px] text-emerald-800 flex items-center justify-center gap-1 font-sans mt-0.5">
+                            <span title="Opener Exam">Op: {item.rankT1Opener > 0 ? `#${item.rankT1Opener}` : '—'}</span>·
+                            <span title="Mid Term Exam">Mid: {item.rankT1Mid > 0 ? `#${item.rankT1Mid}` : '—'}</span>·
+                            <span title="End Term Exam">End: {item.rankT1End > 0 ? `#${item.rankT1End}` : '—'}</span>
                           </div>
                         </td>
 
-                        {/* Term 2 Total & Rank */}
-                        <td className="py-3 px-3 font-mono text-center text-slate-700 bg-sky-50/20">
-                          <div className="font-bold">{!item.hasT2Entry || item.t2Sum === 0 ? '00' : item.t2Sum}</div>
-                          <div className="text-[10px] text-sky-800 font-semibold">
-                            {item.rankT2 > 0 ? `Rank #${item.rankT2}` : 'Pending'}
+                        {/* Term 2 Total & Granular Ranks */}
+                        <td className="py-2.5 px-2 font-mono text-center text-slate-700 bg-sky-50/20">
+                          <div className="font-bold text-slate-900">{!item.hasT2Entry || item.t2Sum === 0 ? '00' : item.t2Sum}</div>
+                          <div className="text-[10px] text-sky-900 font-bold">
+                            {item.rankT2 > 0 ? `Term 2 #${item.rankT2}` : 'Pending'}
+                          </div>
+                          <div className="text-[9.5px] text-sky-800 flex items-center justify-center gap-1 font-sans mt-0.5">
+                            <span title="Opener Exam">Op: {item.rankT2Opener > 0 ? `#${item.rankT2Opener}` : '—'}</span>·
+                            <span title="Mid Term Exam">Mid: {item.rankT2Mid > 0 ? `#${item.rankT2Mid}` : '—'}</span>·
+                            <span title="End Term Exam">End: {item.rankT2End > 0 ? `#${item.rankT2End}` : '—'}</span>
                           </div>
                         </td>
 
-                        {/*  Term 3 Total & Rank */}
-                        <td className="py-3 px-3 font-mono text-center text-slate-700 bg-amber-50/20">
-                          <div className="font-bold">{!item.hasT3Entry || item.t3Sum === 0 ? '00' : item.t3Sum}</div>
-                          <div className="text-[10px] text-amber-800 font-semibold">
-                            {item.rankEndTerm > 0 ? `Rank #${item.rankEndTerm}` : 'Pending'}
+                        {/* Term 3 / End Term Total & Granular Ranks */}
+                        <td className="py-2.5 px-2 font-mono text-center text-slate-700 bg-amber-50/20">
+                          <div className="font-bold text-slate-900">{!item.hasT3Entry || item.t3Sum === 0 ? '00' : item.t3Sum}</div>
+                          <div className="text-[10px] text-amber-900 font-bold">
+                            {item.rankT3 > 0 ? `Term 3 #${item.rankT3}` : 'Pending'}
+                          </div>
+                          <div className="text-[9.5px] text-amber-800 flex items-center justify-center gap-1 font-sans mt-0.5">
+                            <span title="Opener Exam">Op: {item.rankT3Opener > 0 ? `#${item.rankT3Opener}` : '—'}</span>·
+                            <span title="Mid Term Exam">Mid: {item.rankT3Mid > 0 ? `#${item.rankT3Mid}` : '—'}</span>·
+                            <span title="End Term Exam">End: {item.rankT3End > 0 ? `#${item.rankT3End}` : '—'}</span>
                           </div>
                         </td>
 

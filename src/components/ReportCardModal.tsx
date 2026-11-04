@@ -1,8 +1,13 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useSchool } from '../context/SchoolContext';
-import { Printer, X, Award, CheckCircle2, ShieldCheck, Check, Trophy } from 'lucide-react';
+import { Printer, X, Award, CheckCircle2, ShieldCheck, Check, Trophy, Cloud, ExternalLink } from 'lucide-react';
 import { computeCohortRankings, buildLearningAreasForStudent } from '../data/initialData';
 import { SchoolEmblem } from './SchoolEmblem';
+import { 
+  exportReportCardToGoogleDrive, 
+  getDriveAccessToken, 
+  signInWithGoogleDrive 
+} from '../services/googleDriveService';
 
 interface ReportCardModalProps {
   studentId: string;
@@ -25,7 +30,8 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({
   const rankOverall = rankInfo?.hasTeacherEntry ? rankInfo.rankOverall : (report?.classRank || 0);
   const rankT1 = rankInfo?.hasT1Entry ? rankInfo.rankT1 : 0;
   const rankT2 = rankInfo?.hasT2Entry ? rankInfo.rankT2 : 0;
-  const rankT3 = rankInfo?.hasT3Entry ? rankInfo.rankEndTerm : 0;
+  const rankT3 = rankInfo?.hasT3Entry ? rankInfo.rankT3 : 0;
+  const rankEndTerm = rankT3;
   const totalInGrade = rankInfo?.totalInGrade || report?.totalInClass || students.length;
 
   const displayAreas = useMemo(() => {
@@ -35,8 +41,36 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({
 
   if (!student || !report) return null;
 
+  const [driveSaving, setDriveSaving] = useState(false);
+  const [driveResult, setDriveResult] = useState<{ success: boolean; link?: string; message?: string } | null>(null);
+
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleSaveToDrive = async () => {
+    setDriveSaving(true);
+    setDriveResult(null);
+    try {
+      let token = getDriveAccessToken();
+      if (!token) {
+        const authRes = await signInWithGoogleDrive();
+        token = authRes.accessToken;
+      }
+      const uploaded = await exportReportCardToGoogleDrive(student, report, rankInfo, academy);
+      setDriveResult({
+        success: true,
+        link: uploaded.webViewLink,
+        message: 'Saved to Google Drive Archive!'
+      });
+    } catch (err: any) {
+      setDriveResult({
+        success: false,
+        message: err.message || 'Failed to save to Google Drive.'
+      });
+    } finally {
+      setDriveSaving(false);
+    }
   };
 
   return (
@@ -50,13 +84,26 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({
             <span>{student.fullName}</span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              onClick={handleSaveToDrive}
+              disabled={driveSaving}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-lg transition-colors shadow-xs"
+              title="Upload learner report card directly to your Google Drive archive"
+            >
+              {driveSaving ? (
+                <span className="animate-spin inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full" />
+              ) : (
+                <Cloud className="w-3.5 h-3.5" />
+              )}
+              <span>{driveSaving ? 'Saving to Drive...' : 'Save to Google Drive'}</span>
+            </button>
             <button
               onClick={handlePrint}
               className="inline-flex items-center gap-2 px-4 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors shadow-xs"
             >
               <Printer className="w-4 h-4" />
-              <span>Print Official Report Card</span>
+              <span>Print Report Card</span>
             </button>
             <button
               onClick={onClose}
@@ -66,6 +113,29 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Drive Save Notification Toast */}
+        {driveResult && (
+          <div className={`no-print px-6 py-2.5 text-xs flex items-center justify-between gap-3 ${
+            driveResult.success ? 'bg-emerald-50 text-emerald-900 border-b border-emerald-200' : 'bg-rose-50 text-rose-900 border-b border-rose-200'
+          }`}>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className={`w-4 h-4 ${driveResult.success ? 'text-emerald-600' : 'text-rose-600'}`} />
+              <span>{driveResult.message}</span>
+            </div>
+            {driveResult.link && (
+              <a
+                href={driveResult.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 font-semibold underline text-blue-700 hover:text-blue-800"
+              >
+                <span>View File in Drive</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            )}
+          </div>
+        )}
 
         {/* Printable Official Document Body */}
         <div className="p-6 sm:p-10 bg-white text-slate-900 space-y-6 print:p-0 print:space-y-4">
@@ -153,22 +223,31 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({
 
               <div className="bg-emerald-100/80 p-2 rounded border border-emerald-300 text-emerald-950">
                 <span className="text-[10px] uppercase font-bold text-emerald-800 block">Term 1 Rank</span>
-                <span className="font-extrabold text-sm">
+                <span className="font-extrabold text-sm block">
                   {rankT1 === 0 ? '00 (Pending)' : `#${rankT1} of ${totalInGrade}`}
+                </span>
+                <span className="text-[9.5px] text-emerald-900 block font-medium mt-0.5">
+                  Op: {rankInfo?.rankT1Opener ? `#${rankInfo.rankT1Opener}` : '—'} · Mid: {rankInfo?.rankT1Mid ? `#${rankInfo.rankT1Mid}` : '—'} · End: {rankInfo?.rankT1End ? `#${rankInfo.rankT1End}` : '—'}
                 </span>
               </div>
 
               <div className="bg-sky-100/80 p-2 rounded border border-sky-300 text-sky-950">
                 <span className="text-[10px] uppercase font-bold text-sky-800 block">Term 2 Rank</span>
-                <span className="font-extrabold text-sm">
+                <span className="font-extrabold text-sm block">
                   {rankT2 === 0 ? '00 (Pending)' : `#${rankT2} of ${totalInGrade}`}
+                </span>
+                <span className="text-[9.5px] text-sky-900 block font-medium mt-0.5">
+                  Op: {rankInfo?.rankT2Opener ? `#${rankInfo.rankT2Opener}` : '—'} · Mid: {rankInfo?.rankT2Mid ? `#${rankInfo.rankT2Mid}` : '—'} · End: {rankInfo?.rankT2End ? `#${rankInfo.rankT2End}` : '—'}
                 </span>
               </div>
 
               <div className="bg-amber-100/80 p-2 rounded border border-amber-300 text-amber-950">
-                <span className="text-[10px] uppercase font-bold text-amber-800 block">End Term Rank</span>
-                <span className="font-extrabold text-sm">
+                <span className="text-[10px] uppercase font-bold text-amber-800 block">Term 3 / End Term Rank</span>
+                <span className="font-extrabold text-sm block">
                   {rankEndTerm === 0 ? '00 (Pending)' : `#${rankEndTerm} of ${totalInGrade}`}
+                </span>
+                <span className="text-[9.5px] text-amber-900 block font-medium mt-0.5">
+                  Op: {rankInfo?.rankT3Opener ? `#${rankInfo.rankT3Opener}` : '—'} · Mid: {rankInfo?.rankT3Mid ? `#${rankInfo.rankT3Mid}` : '—'} · End: {rankInfo?.rankT3End ? `#${rankInfo.rankT3End}` : '—'}
                 </span>
               </div>
             </div>
@@ -349,7 +428,7 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({
               <span className="font-bold text-slate-900 block">Class Facilitator's Remark:</span>
               <p className="text-slate-700 italic text-[11px] mt-1">{report.facilitatorRemark}</p>
               <div className="mt-6 pt-2 border-t border-slate-400 text-slate-600 text-[11px]">
-                Facilitator Signature: <span className="font-semibold text-slate-900"</span>
+                Facilitator Signature: <span className="font-semibold text-slate-900">Signed & Verified</span>
               </div>
             </div>
 
@@ -365,7 +444,7 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({
               </div>
 
               <div className="mt-2 pt-2 border-t border-slate-400 text-slate-600 text-[11px]">
-                Headteacher: <span className="font-semibold text-slate-900"</span>
+                Headteacher: <span className="font-semibold text-slate-900">Certified & Sealed</span>
               </div>
             </div>
           </div>

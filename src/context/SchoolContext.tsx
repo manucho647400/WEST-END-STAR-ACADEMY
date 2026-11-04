@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { SchoolData, Student, StaffMember, Transaction, ReportCard, Notice, CBCPerformanceLevel } from '../types';
 import { INITIAL_SCHOOL_DATA } from '../data/initialData';
+import { db } from '../lib/firebase';
+import { collection, doc, setDoc, deleteDoc, getDocs } from 'firebase/firestore';
 
 const STORAGE_KEY = 'wesa_clean_empty_live_data_v4';
 const PREVIOUS_STORAGE_KEYS = [
@@ -72,6 +74,47 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [data]);
 
+  // Initial sync from Firestore
+  useEffect(() => {
+    async function syncFromFirestore() {
+      try {
+        const studentDocs = await getDocs(collection(db, 'students'));
+        if (!studentDocs.empty) {
+          const loadedStudents: Student[] = [];
+          studentDocs.forEach(d => loadedStudents.push(d.data() as Student));
+          setData(prev => ({
+            ...prev,
+            students: loadedStudents,
+            enrolledLearnersCount: loadedStudents.length
+          }));
+        }
+
+        const reportDocs = await getDocs(collection(db, 'reportCards'));
+        if (!reportDocs.empty) {
+          const loadedReports: Record<string, ReportCard> = {};
+          reportDocs.forEach(d => { loadedReports[d.id] = d.data() as ReportCard; });
+          setData(prev => ({
+            ...prev,
+            reportCards: { ...prev.reportCards, ...loadedReports }
+          }));
+        }
+
+        const txDocs = await getDocs(collection(db, 'transactions'));
+        if (!txDocs.empty) {
+          const loadedTx: Transaction[] = [];
+          txDocs.forEach(d => loadedTx.push(d.data() as Transaction));
+          setData(prev => ({
+            ...prev,
+            transactions: loadedTx
+          }));
+        }
+      } catch (e) {
+        console.warn('Firestore initial sync note:', e);
+      }
+    }
+    syncFromFirestore();
+  }, []);
+
   const addStudent = (studentData: Partial<Student>): Student => {
     const nextIndex = data.students.length + 1;
     const year = new Date().getFullYear();
@@ -108,6 +151,9 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       avatarUrl: studentData.avatarUrl || ''
     };
 
+    // Persist to Firestore
+    setDoc(doc(db, 'students', id), newStudent).catch(() => {});
+
     setData(prev => ({
       ...prev,
       enrolledLearnersCount: prev.students.length + 1,
@@ -124,13 +170,16 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const totalFees = updates.totalFees !== undefined ? updates.totalFees : s.totalFees;
         const paidFees = updates.paidFees !== undefined ? updates.paidFees : s.paidFees;
         const feeBalance = Math.max(0, totalFees - paidFees);
-        return { ...s, ...updates, feeBalance };
+        const updated = { ...s, ...updates, feeBalance };
+        setDoc(doc(db, 'students', id), updated, { merge: true }).catch(() => {});
+        return updated;
       });
       return { ...prev, students: updatedStudents };
     });
   };
 
   const deleteStudent = (id: string) => {
+    deleteDoc(doc(db, 'students', id)).catch(() => {});
     setData(prev => ({
       ...prev,
       students: prev.students.filter(s => s.id !== id),
@@ -222,6 +271,8 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       notes: txData.notes || ''
     };
 
+    setDoc(doc(db, 'transactions', id), newTx).catch(() => {});
+
     setData(prev => ({
       ...prev,
       transactions: [newTx, ...prev.transactions]
@@ -231,6 +282,8 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const saveReportCard = (studentId: string, card: ReportCard) => {
+    setDoc(doc(db, 'reportCards', studentId), card, { merge: true }).catch(() => {});
+
     setData(prev => {
       const student = prev.students.find(s => s.id === studentId);
       let updatedStudents = prev.students;

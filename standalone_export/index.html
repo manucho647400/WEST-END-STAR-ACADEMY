@@ -362,7 +362,7 @@
 
   <!-- ENROLL LEARNER MODAL -->
   <!-- STRICT SPECIFICATION: Only adds what is inserted or leaves blank. -->
-  <!-- Stream, House, Guardian Email, Residential Area, Health History, and Term Fees REMOVED -->
+  <!--  Guardian Email,and Term Fees REMOVED -->
   <!-- Reception is the first class -->
   <div id="enroll-modal" class="modal-backdrop" style="display: none;">
     <div class="modal-card">
@@ -512,10 +512,10 @@
           <div class="form-group">
             <label>Rubric Rating *</label>
             <select id="a-rubric" required class="form-control font-bold">
-              <option value="EE">EE - Exceeding Expectation (Level 4)</option>
-              <option value="ME">ME - Meeting Expectation (Level 3)</option>
-              <option value="AE">AE - Approaching Expectation (Level 2)</option>
-              <option value="BE">BE - Below Expectation (Level 1)</option>
+              <option value="EE">EE - Exceeding Expectation </option>
+              <option value="ME">ME - Meeting Expectation </option>
+              <option value="AE">AE - Approaching Expectation </option>
+              <option value="BE">BE - Below Expectation </option>
             </select>
           </div>
         </div>
@@ -558,8 +558,8 @@
             <i class="fa-solid fa-graduation-cap"></i>
           </div>
           <h2>West End Star Academy</h2>
-          <p class="receipt-sub">P.O. Box 45210 - 00100, Nairobi, Kenya</p>
-          <p class="receipt-sub">Tel: +254 722 000 000 &bull; MOE CBC Reg: WESA/PRI/2024</p>
+          <p class="receipt-sub">P.O. Box 333 - 20100, NAKURU, Kenya</p>
+          <p class="receipt-sub">Tel: +254 700678355 &bull; MOE CBC Reg: WESA/PRI/2026</p>
           <div class="receipt-tag">Official Fee Clearance Receipt</div>
         </div>
 
@@ -617,10 +617,10 @@
   <script>
     // State Data - Reception is the first class
     let students = [
-      { id: 1, regNo: "WESA-2025-0101", nemisUpi: "UPI-481920", fullName: "Amina Mohamed Noor", grade: "Reception", gender: "Female", guardianName: "Fatuma Noor", guardianPhone: "0722112233", feeBalance: 0 },
-      { id: 2, regNo: "WESA-2025-0102", nemisUpi: "UPI-591024", fullName: "Brian Kiprono Koech", grade: "Grade 5", gender: "Male", guardianName: "David Koech", guardianPhone: "0711334455", feeBalance: 4500 },
-      { id: 3, regNo: "WESA-2025-0103", nemisUpi: "UPI-619204", fullName: "Clara Wanjiku Kamau", grade: "Grade 7 (JSS)", gender: "Female", guardianName: "Grace Wanjiku", guardianPhone: "0733556677", feeBalance: 12000 },
-      { id: 4, regNo: "WESA-2025-0104", nemisUpi: "", fullName: "Dan Otieno Omondi", grade: "Grade 3", gender: "Male", guardianName: "Joseph Omondi", guardianPhone: "0700889900", feeBalance: 0 }
+      { id: 1, regNo: "WESA-2026-0101", nemisUpi: "UPI-481920", fullName: "Amina Mohamed Noor", grade: "Reception", gender: "Female", guardianName: "Fatuma Noor", guardianPhone: "0722112233", feeBalance: 0 },
+      { id: 2, regNo: "WESA-2026-0102", nemisUpi: "UPI-591024", fullName: "Brian Kiprono Koech", grade: "Grade 5", gender: "Male", guardianName: "David Koech", guardianPhone: "0711334455", feeBalance: 4500 },
+      { id: 3, regNo: "WESA-2026-0103", nemisUpi: "UPI-619204", fullName: "Clara Wanjiku Kamau", grade: "Grade 7 (JSS)", gender: "Female", guardianName: "Grace Wanjiku", guardianPhone: "0733556677", feeBalance: 12000 },
+      { id: 4, regNo: "WESA-2026-0104", nemisUpi: "", fullName: "Dan Otieno Omondi", grade: "Grade 3", gender: "Male", guardianName: "Joseph Omondi", guardianPhone: "0700889900", feeBalance: 0 }
     ];
 
     let assessments = [
@@ -631,7 +631,7 @@
     ];
 
     let payments = [
-      { id: 1, receiptNo: "REC-2025-8801", date: "2025-02-10", studentId: 1, studentName: "Amina Mohamed Noor", regNo: "WESA-2025-0101", amount: 18500, method: "M-Pesa", ref: "RJB928KL01", balanceRemaining: 0 },
+      { id: 1, receiptNo: "REC-2026-8801", date: "2025-02-10", studentId: 1, studentName: "Amina Mohamed Noor", regNo: "WESA-2025-0101", amount: 18500, method: "M-Pesa", ref: "RJB928KL01", balanceRemaining: 0 },
       { id: 2, receiptNo: "REC-2025-8802", date: "2025-02-12", studentId: 2, studentName: "Brian Kiprono Koech", regNo: "WESA-2025-0102", amount: 14000, method: "Direct Bank Deposit", ref: "BNK-492041", balanceRemaining: 4500 },
       { id: 3, receiptNo: "REC-2025-8803", date: "2025-02-15", studentId: 4, studentName: "Dan Otieno Omondi", regNo: "WESA-2025-0104", amount: 18500, method: "Cash / Cheque", ref: "CHQ-00192", balanceRemaining: 0 }
     ];

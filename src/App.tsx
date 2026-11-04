@@ -17,6 +17,9 @@ import { PaymentModal } from './components/PaymentModal';
 import { DataBackupModal } from './components/DataBackupModal';
 import { AuthModal } from './components/AuthModal';
 import { AccountModal } from './components/AccountModal';
+import { GoogleDriveModule } from './components/GoogleDriveModule';
+import { GmailModule } from './components/GmailModule';
+import { ClassroomModule } from './components/ClassroomModule';
 import { SchoolEmblem } from './components/SchoolEmblem';
 import { Student, UserRole } from './types';
 import { 
@@ -288,6 +291,18 @@ function MainApp() {
 
             {activeTab === 'notices' && (
               <NoticesModule />
+            )}
+
+            {activeTab === 'drive' && (
+              <GoogleDriveModule />
+            )}
+
+            {activeTab === 'gmail' && (
+              <GmailModule />
+            )}
+
+            {activeTab === 'classroom' && (
+              <ClassroomModule />
             )}
           </>
         )}

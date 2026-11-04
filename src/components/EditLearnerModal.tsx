@@ -24,7 +24,7 @@ export const EditLearnerModal: React.FC<EditLearnerModalProps> = ({
     nemisUpi: student.nemisUpi || '',
     grade: student.grade || CBC_GRADES[0],
     section: student.section || CBC_SECTIONS[0],
-    
+    house: student.house || CBC_HOUSES[0],
     guardianName: student.guardianName || '',
     guardianPhone: student.guardianPhone || '',
     guardianEmail: student.guardianEmail || '',

@@ -75,7 +75,7 @@ def init_db():
         strand TEXT,
         rubric TEXT NOT NULL, -- EE, ME, AE, BE
         term TEXT DEFAULT 'Term 1',
-        academic_year INTEGER DEFAULT 2025,
+        academic_year INTEGER DEFAULT 2026,
         remarks TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
@@ -122,10 +122,10 @@ def init_db():
         INSERT INTO students (reg_no, nemis_upi, full_name, grade, gender, guardian_name, guardian_phone, fee_balance)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?);
         """, [
-            ("WESA-2025-0101", "UPI-481920", "Amina Mohamed Noor", "Reception", "Female", "Fatuma Noor", "0722112233", 0.0),
-            ("WESA-2025-0102", "UPI-591024", "Brian Kiprono Koech", "Grade 5", "Male", "David Koech", "0711334455", 4500.0),
-            ("WESA-2025-0103", "UPI-619204", "Clara Wanjiku Kamau", "Grade 7 (JSS)", "Female", "Grace Wanjiku", "0733556677", 12000.0),
-            ("WESA-2025-0104", "", "Dan Otieno Omondi", "Grade 3", "Male", "Joseph Omondi", "0700889900", 0.0)
+            ("WESA/2026/001", "UP-90218-A", "Amani Muthoni", "Reception", "Female", "Mary Wanjiku", "+254 712 345 678", 0.0),
+            ("WESA/2026/002", "UP-90219-B", "Baraka Kiprop", "PP1", "Male", "David Kiprop", "+254 723 456 789", 4500.0),
+            ("WESA/2026/003", "UP-90220-C", "Zawadi Kemboi", "Grade 1", "Female", "Faith Chebet", "+254 734 567 890", 0.0),
+            ("WESA/2026/004", "UP-90221-D", "Jabali Omondi", "Grade 2", "Male", "John Omondi", "+254 745 678 901", 8000.0)
         ])
 
         # Seed initial assessments
@@ -144,9 +144,10 @@ def init_db():
         INSERT INTO payments (receipt_no, student_id, amount, payment_method, reference_no, balance_remaining, date_paid)
         VALUES (?, ?, ?, ?, ?, ?, ?);
         """, [
-            ("REC-2025-8801", 1, 18500.0, "M-Pesa", "RJB928KL01", 0.0, "2025-02-10"),
-            ("REC-2025-8802", 2, 14000.0, "Direct Bank Deposit", "BNK-492041", 4500.0, "2025-02-12"),
-            ("REC-2025-8803", 4, 18500.0, "Cash / Cheque", "CHQ-00192", 0.0, "2025-02-15")
+            ("RCP-2026-001", 1, 15000.0, "M-Pesa", "QHK8291KL0", 0.0, "2026-01-10"),
+            ("RCP-2026-002", 2, 10500.0, "Bank Transfer", "FT260110398", 4500.0, "2026-01-12"),
+            ("RCP-2026-003", 3, 15000.0, "M-Pesa", "QHL99321AB", 0.0, "2026-01-15"),
+            ("RCP-2026-004", 4, 7000.0, "Cash", "CSH-26-088", 8000.0, "2026-01-18")
         ])
 
         conn.commit()
@@ -373,7 +374,7 @@ def manage_payments():
 
         cursor.execute("UPDATE students SET fee_balance = ? WHERE id = ?;", (new_balance, student_id))
 
-        receipt_no = f"REC-2025-{random.randint(1000, 9999)}"
+        receipt_no = f"REC-2026-{random.randint(1000, 9999)}"
         date_paid = data.get("date_paid") or datetime.now().strftime("%Y-%m-%d")
         payment_method = data.get("payment_method", "M-Pesa")
         reference_no = data.get("reference_no", "").strip()

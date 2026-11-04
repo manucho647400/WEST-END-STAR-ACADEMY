@@ -5,7 +5,10 @@ import {
   LogIn, 
   LogOut, 
   User as UserIcon,
-  CheckCircle2
+  CheckCircle2,
+  Cloud,
+  Mail,
+  GraduationCap
 } from 'lucide-react';
 import { UserRole } from '../types';
 import { SchoolEmblem } from './SchoolEmblem';
@@ -126,6 +129,39 @@ export const Navbar: React.FC<NavbarProps> = ({
                 >
                   KNEC Circulars
                 </button>
+                <button
+                  onClick={() => setActiveTab('drive')}
+                  className={`hover:text-emerald-900 transition-colors whitespace-nowrap shrink-0 py-1 border-b-2 text-xs uppercase tracking-wider font-semibold flex items-center gap-1.5 ${
+                    activeTab === 'drive'
+                      ? 'border-blue-600 text-blue-700'
+                      : 'border-transparent text-slate-600'
+                  }`}
+                >
+                  <Cloud className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Google Drive</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('gmail')}
+                  className={`hover:text-emerald-900 transition-colors whitespace-nowrap shrink-0 py-1 border-b-2 text-xs uppercase tracking-wider font-semibold flex items-center gap-1.5 ${
+                    activeTab === 'gmail'
+                      ? 'border-red-600 text-red-700'
+                      : 'border-transparent text-slate-600'
+                  }`}
+                >
+                  <Mail className="w-3.5 h-3.5 text-red-600" />
+                  <span>Gmail</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('classroom')}
+                  className={`hover:text-emerald-900 transition-colors whitespace-nowrap shrink-0 py-1 border-b-2 text-xs uppercase tracking-wider font-semibold flex items-center gap-1.5 ${
+                    activeTab === 'classroom'
+                      ? 'border-amber-600 text-amber-700'
+                      : 'border-transparent text-slate-600'
+                  }`}
+                >
+                  <GraduationCap className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Classroom</span>
+                </button>
               </>
             ) : currentUser?.role === 'teacher' ? (
               <>
@@ -169,6 +205,39 @@ export const Navbar: React.FC<NavbarProps> = ({
                 >
                   KNEC Directives
                 </button>
+                <button
+                  onClick={() => setActiveTab('drive')}
+                  className={`hover:text-emerald-900 transition-colors whitespace-nowrap shrink-0 py-1 border-b-2 text-xs uppercase tracking-wider font-semibold flex items-center gap-1.5 ${
+                    activeTab === 'drive'
+                      ? 'border-blue-600 text-blue-700'
+                      : 'border-transparent text-slate-600'
+                  }`}
+                >
+                  <Cloud className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Google Drive</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('classroom')}
+                  className={`hover:text-emerald-900 transition-colors whitespace-nowrap shrink-0 py-1 border-b-2 text-xs uppercase tracking-wider font-semibold flex items-center gap-1.5 ${
+                    activeTab === 'classroom'
+                      ? 'border-amber-600 text-amber-700'
+                      : 'border-transparent text-slate-600'
+                  }`}
+                >
+                  <GraduationCap className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Classroom</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('gmail')}
+                  className={`hover:text-emerald-900 transition-colors whitespace-nowrap shrink-0 py-1 border-b-2 text-xs uppercase tracking-wider font-semibold flex items-center gap-1.5 ${
+                    activeTab === 'gmail'
+                      ? 'border-red-600 text-red-700'
+                      : 'border-transparent text-slate-600'
+                  }`}
+                >
+                  <Mail className="w-3.5 h-3.5 text-red-600" />
+                  <span>Gmail</span>
+                </button>
               </>
             ) : currentUser?.role === 'parent' ? (
               <>
@@ -191,6 +260,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }`}
                 >
                   School Circulars
+                </button>
+                <button
+                  onClick={() => setActiveTab('drive')}
+                  className={`hover:text-emerald-900 transition-colors whitespace-nowrap shrink-0 py-1 border-b-2 text-xs uppercase tracking-wider font-semibold flex items-center gap-1.5 ${
+                    activeTab === 'drive'
+                      ? 'border-blue-600 text-blue-700'
+                      : 'border-transparent text-slate-600'
+                  }`}
+                >
+                  <Cloud className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Google Drive</span>
                 </button>
               </>
             ) : (
@@ -243,6 +323,22 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             )}
 
+            {/* Google Drive CBC Cloud Button */}
+            {currentUser && (
+              <button
+                onClick={() => setActiveTab('drive')}
+                title="Google Drive CBC Cloud Repository"
+                className={`p-2 rounded-lg transition-colors flex items-center gap-1.5 ${
+                  activeTab === 'drive'
+                    ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                    : 'text-slate-600 hover:text-blue-700 hover:bg-slate-100'
+                }`}
+              >
+                <Cloud className="w-4 h-4" />
+                <span className="hidden lg:inline text-xs font-semibold">Drive</span>
+              </button>
+            )}
+
             {/* Quick backup button - strictly restricted to the 2 authorized Primary Admins */}
             {canAccessSchoolData && (
               <button
@@ -268,6 +364,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               { id: 'bursary', label: 'Bursary' },
               { id: 'staff', label: 'Faculty' },
               { id: 'notices', label: 'Circulars' },
+              { id: 'drive', label: 'Google Drive' },
+              { id: 'gmail', label: 'Gmail' },
+              { id: 'classroom', label: 'Classroom' },
             ].map(item => (
               <button
                 key={item.id}
@@ -285,6 +384,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               { id: 'assessments', label: 'Assessments' },
               { id: 'learners', label: 'Learners' },
               { id: 'notices', label: 'KNEC Directives' },
+              { id: 'drive', label: 'Google Drive' },
+              { id: 'classroom', label: 'Classroom' },
+              { id: 'gmail', label: 'Gmail' },
             ].map(item => (
               <button
                 key={item.id}
@@ -300,6 +402,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             [
               { id: 'parent-portal', label: 'Bursary & M-Pesa' },
               { id: 'notices', label: 'Circulars' },
+              { id: 'drive', label: 'Google Drive' },
             ].map(item => (
               <button
                 key={item.id}

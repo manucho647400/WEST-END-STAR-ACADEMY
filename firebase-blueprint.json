@@ -1,0 +1,114 @@
+{
+  "entities": {
+    "student": {
+      "title": "student",
+      "description": "Registered learner enrolled in the school",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "fullName": { "type": "string" },
+        "gender": { "type": "string" },
+        "dob": { "type": "string" },
+        "birthCertNo": { "type": "string" },
+        "nemisUpi": { "type": "string" },
+        "grade": { "type": "string" },
+        "section": { "type": "string" },
+        "house": { "type": "string" },
+        "guardianName": { "type": "string" },
+        "guardianPhone": { "type": "string" },
+        "guardianEmail": { "type": "string" },
+        "address": { "type": "string" },
+        "totalFees": { "type": "number" },
+        "paidFees": { "type": "number" },
+        "feeBalance": { "type": "number" },
+        "scholarshipPct": { "type": "number" },
+        "enrollmentDate": { "type": "string" },
+        "status": { "type": "string" },
+        "overallPerformanceLevel": { "type": "string" },
+        "attendanceRate": { "type": "number" },
+        "regNo": { "type": "string" }
+      },
+      "required": ["id", "fullName", "grade", "nemisUpi"]
+    },
+    "reportCard": {
+      "title": "reportCard",
+      "description": "Learner official terminal assessment record",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "term": { "type": "string" },
+        "academicYear": { "type": "string" },
+        "averageScore": { "type": "number" },
+        "classRank": { "type": "number" },
+        "totalInClass": { "type": "number" },
+        "attendancePct": { "type": "number" },
+        "issueDate": { "type": "string" },
+        "facilitatorRemark": { "type": "string" },
+        "headTeacherRemark": { "type": "string" }
+      },
+      "required": ["studentId", "term", "academicYear"]
+    },
+    "transaction": {
+      "title": "transaction",
+      "description": "Fee receipt and payment transaction record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "receiptNo": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "amount": { "type": "number" },
+        "feeType": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "mpesaRef": { "type": "string" },
+        "date": { "type": "string" },
+        "term": { "type": "string" },
+        "academicYear": { "type": "string" },
+        "balanceRemaining": { "type": "number" },
+        "receivedBy": { "type": "string" }
+      },
+      "required": ["id", "receiptNo", "studentId", "amount", "paymentMethod"]
+    },
+    "userProfile": {
+      "title": "userProfile",
+      "description": "Authenticated user profile and credential details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string" },
+        "isVerified": { "type": "boolean" },
+        "department": { "type": "string" },
+        "tscNumber": { "type": "string" },
+        "assignedGrade": { "type": "string" },
+        "assignedSection": { "type": "string" },
+        "learningAreas": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentRegNo": { "type": "string" },
+        "studentName": { "type": "string" },
+        "phone": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name", "email", "role"]
+    }
+  },
+  "firestore": {
+    "/students/{studentId}": {
+      "schema": "student",
+      "description": "Stores individual student profile documents"
+    },
+    "/reportCards/{studentId}": {
+      "schema": "reportCard",
+      "description": "Stores student terminal report card documents"
+    },
+    "/transactions/{transactionId}": {
+      "schema": "transaction",
+      "description": "Stores fee payment transactions"
+    },
+    "/users/{userId}": {
+      "schema": "userProfile",
+      "description": "Stores registered user accounts and saved profile credentials"
+    }
+  }
+}

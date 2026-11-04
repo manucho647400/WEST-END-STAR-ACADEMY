@@ -171,9 +171,9 @@ export const TeacherPortal: React.FC<TeacherPortalProps> = ({
   };
 
   const calculateRubric = (total: number): { level: CBCPerformanceLevel; score: number } => {
-    if (total >= 80) return { level: 'EE', };
-    if (total >= 65) return { level: 'ME',  };
-    if (total >= 50) return { level: 'AE',  };
+    if (total >= 80) return { level: 'EE', score: 4 };
+    if (total >= 65) return { level: 'ME', score: 3 };
+    if (total >= 50) return { level: 'AE', score: 2 };
     return { level: 'BE', score: 1 };
   };
 

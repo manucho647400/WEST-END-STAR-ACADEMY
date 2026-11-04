@@ -27,8 +27,8 @@ export const CBC_GRADES = [
   "Grade 9 "
 ];
 
-export const CBC_SECTIONS = 
-
+export const CBC_SECTIONS = ["Star", "Alpha", "Blue", "Gold"];
+export const CBC_HOUSES = ["Sirius", "Canopus", "Polaris", "Vega"];
 
 // CBC ASSESSMENT RECORD SUBJECTS BY GRADE TIER
 // TIER 1: Reception - PP2
@@ -196,9 +196,22 @@ export const CORE_VALUES_LIST = [
 
 export interface CohortRankItem {
   student: Student;
+  // Exam sub-totals
+  t1oSum: number;
+  t1mSum: number;
+  t1eSum: number;
   t1Sum: number;
+
+  t2oSum: number;
+  t2mSum: number;
+  t2eSum: number;
   t2Sum: number;
+
+  t3oSum: number;
+  t3mSum: number;
+  t3eSum: number;
   t3Sum: number;
+
   grandTotal: number;
   totalPossibleMarks: number;
   t1Mean: number;
@@ -211,10 +224,25 @@ export interface CohortRankItem {
   hasT2Entry: boolean;
   hasT3Entry: boolean;
   hasTeacherEntry: boolean;
-  rankT1: number;       // Rank in Term 1 within their grade (0 if unranked)
-  rankT2: number;       // Rank in Term 2 within their grade (0 if unranked)
-  rankEndTerm: number;  // Rank in End Term (Term 3) within their grade (0 if unranked)
-  rankOverall: number;  // Overall Rank within their grade (0 if unranked)
+
+  // Granular Exam Rankings within Grade Cohort
+  rankT1Opener: number;
+  rankT1Mid: number;
+  rankT1End: number;
+  rankT1: number;       // Term 1 Overall Rank
+
+  rankT2Opener: number;
+  rankT2Mid: number;
+  rankT2End: number;
+  rankT2: number;       // Term 2 Overall Rank
+
+  rankT3Opener: number;
+  rankT3Mid: number;
+  rankT3End: number;
+  rankT3: number;       // Term 3 Overall Rank
+  rankEndTerm: number;  // Alias for rankT3
+
+  rankOverall: number;  // Grade Overall Rank
   totalInGrade: number; // Total learners in this grade
 }
 
@@ -222,38 +250,47 @@ export const computeCohortRankings = (
   students: Student[],
   reportCards: Record<string, ReportCard>
 ): CohortRankItem[] => {
-  const rawItems = students.map(s => {
+  const rawItems: CohortRankItem[] = students.map(s => {
     const card = reportCards[s.id];
-    let t1Sum = 0;
-    let t2Sum = 0;
-    let t3Sum = 0;
+    let t1oSum = 0, t1mSum = 0, t1eSum = 0;
+    let t2oSum = 0, t2mSum = 0, t2eSum = 0;
+    let t3oSum = 0, t3mSum = 0, t3eSum = 0;
     let hasT1Entry = false;
     let hasT2Entry = false;
     let hasT3Entry = false;
 
     if (card?.learningAreas && card.learningAreas.length > 0) {
       card.learningAreas.forEach(a => {
-        const t1 = (a.term1Opener || 0) + (a.term1Mid || 0) + (a.term1End || 0);
-        const t2 = (a.term2Opener || 0) + (a.term2Mid || 0) + (a.term2End || 0);
-        const t3 = (a.term3Opener || 0) + (a.term3Mid || 0) + (a.term3End || 0);
-        if (t1 > 0) hasT1Entry = true;
-        if (t2 > 0) hasT2Entry = true;
-        if (t3 > 0) hasT3Entry = true;
-        t1Sum += t1;
-        t2Sum += t2;
-        t3Sum += t3;
+        const o1 = a.term1Opener || 0;
+        const m1 = a.term1Mid || 0;
+        const e1 = a.term1End || 0;
+        t1oSum += o1;
+        t1mSum += m1;
+        t1eSum += e1;
+        if (o1 > 0 || m1 > 0 || e1 > 0) hasT1Entry = true;
+
+        const o2 = a.term2Opener || 0;
+        const m2 = a.term2Mid || 0;
+        const e2 = a.term2End || 0;
+        t2oSum += o2;
+        t2mSum += m2;
+        t2eSum += e2;
+        if (o2 > 0 || m2 > 0 || e2 > 0) hasT2Entry = true;
+
+        const o3 = a.term3Opener || 0;
+        const m3 = a.term3Mid || 0;
+        const e3 = a.term3End || 0;
+        t3oSum += o3;
+        t3mSum += m3;
+        t3eSum += e3;
+        if (o3 > 0 || m3 > 0 || e3 > 0) hasT3Entry = true;
       });
     }
 
+    const t1Sum = t1oSum + t1mSum + t1eSum;
+    const t2Sum = t2oSum + t2mSum + t2eSum;
+    const t3Sum = t3oSum + t3mSum + t3eSum;
     const hasTeacherEntry = hasT1Entry || hasT2Entry || hasT3Entry;
-    if (!hasTeacherEntry) {
-      t1Sum = 0;
-      t2Sum = 0;
-      t3Sum = 0;
-      hasT1Entry = false;
-      hasT2Entry = false;
-      hasT3Entry = false;
-    }
 
     const subjectCount = getLearningAreasForGrade(s.grade).length || 8;
     const totalPossibleMarks = subjectCount * 9 * 100;
@@ -280,9 +317,9 @@ export const computeCohortRankings = (
 
     return {
       student: s,
-      t1Sum,
-      t2Sum,
-      t3Sum,
+      t1oSum, t1mSum, t1eSum, t1Sum,
+      t2oSum, t2mSum, t2eSum, t2Sum,
+      t3oSum, t3mSum, t3eSum, t3Sum,
       grandTotal,
       totalPossibleMarks,
       t1Mean,
@@ -295,8 +332,18 @@ export const computeCohortRankings = (
       hasT2Entry,
       hasT3Entry,
       hasTeacherEntry,
+      rankT1Opener: 0,
+      rankT1Mid: 0,
+      rankT1End: 0,
       rankT1: 0,
+      rankT2Opener: 0,
+      rankT2Mid: 0,
+      rankT2End: 0,
       rankT2: 0,
+      rankT3Opener: 0,
+      rankT3Mid: 0,
+      rankT3End: 0,
+      rankT3: 0,
       rankEndTerm: 0,
       rankOverall: 0,
       totalInGrade: 0
@@ -311,54 +358,57 @@ export const computeCohortRankings = (
     gradeGroups[g].push(item);
   });
 
-  // Rank each grade cohort independently for Term 1, Term 2, End Term (Term 3), and Overall
+  // Rank each grade cohort independently for each exam and overall
   Object.values(gradeGroups).forEach(group => {
     const totalInGrade = group.length;
     group.forEach(i => { i.totalInGrade = totalInGrade; });
 
-    // Term 1 Ranking
-    const sortedT1 = [...group].sort((a, b) => {
-      if (a.hasT1Entry && !b.hasT1Entry) return -1;
-      if (!a.hasT1Entry && b.hasT1Entry) return 1;
-      return b.t1Mean - a.t1Mean || b.t1Sum - a.t1Sum;
-    });
-    let t1Rank = 1;
-    sortedT1.forEach(item => {
-      item.rankT1 = item.hasT1Entry ? t1Rank++ : 0;
+    // Helper ranker: sorts only learners with scores > 0 in this specific exam and handles ties
+    const assignRanks = (
+      scoreFn: (i: CohortRankItem) => number,
+      setRankFn: (i: CohortRankItem, rank: number) => void
+    ) => {
+      const eligible = group.filter(i => scoreFn(i) > 0);
+      eligible.sort((a, b) => scoreFn(b) - scoreFn(a));
+
+      let currentRank = 1;
+      for (let idx = 0; idx < eligible.length; idx++) {
+        if (idx > 0 && scoreFn(eligible[idx]) < scoreFn(eligible[idx - 1])) {
+          currentRank = idx + 1;
+        }
+        setRankFn(eligible[idx], currentRank);
+      }
+
+      group.forEach(item => {
+        if (scoreFn(item) <= 0) {
+          setRankFn(item, 0);
+        }
+      });
+    };
+
+    // TERM 1 Opener, Midterm, and End Term separately + Aggregate Term 1
+    assignRanks(i => i.t1oSum, (i, r) => { i.rankT1Opener = r; });
+    assignRanks(i => i.t1mSum, (i, r) => { i.rankT1Mid = r; });
+    assignRanks(i => i.t1eSum, (i, r) => { i.rankT1End = r; });
+    assignRanks(i => i.t1Sum, (i, r) => { i.rankT1 = r; });
+
+    // TERM 2 Opener, Midterm, and End Term separately + Aggregate Term 2
+    assignRanks(i => i.t2oSum, (i, r) => { i.rankT2Opener = r; });
+    assignRanks(i => i.t2mSum, (i, r) => { i.rankT2Mid = r; });
+    assignRanks(i => i.t2eSum, (i, r) => { i.rankT2End = r; });
+    assignRanks(i => i.t2Sum, (i, r) => { i.rankT2 = r; });
+
+    // TERM 3 / End Term Opener, Midterm, and End Term separately + Aggregate Term 3
+    assignRanks(i => i.t3oSum, (i, r) => { i.rankT3Opener = r; });
+    assignRanks(i => i.t3mSum, (i, r) => { i.rankT3Mid = r; });
+    assignRanks(i => i.t3eSum, (i, r) => { i.rankT3End = r; });
+    assignRanks(i => i.t3Sum, (i, r) => {
+      i.rankT3 = r;
+      i.rankEndTerm = r;
     });
 
-    // Term 2 Ranking
-    const sortedT2 = [...group].sort((a, b) => {
-      if (a.hasT2Entry && !b.hasT2Entry) return -1;
-      if (!a.hasT2Entry && b.hasT2Entry) return 1;
-      return b.t2Mean - a.t2Mean || b.t2Sum - a.t2Sum;
-    });
-    let t2Rank = 1;
-    sortedT2.forEach(item => {
-      item.rankT2 = item.hasT2Entry ? t2Rank++ : 0;
-    });
-
-    // End Term (Term 3) Ranking
-    const sortedT3 = [...group].sort((a, b) => {
-      if (a.hasT3Entry && !b.hasT3Entry) return -1;
-      if (!a.hasT3Entry && b.hasT3Entry) return 1;
-      return b.t3Mean - a.t3Mean || b.t3Sum - a.t3Sum;
-    });
-    let t3Rank = 1;
-    sortedT3.forEach(item => {
-      item.rankEndTerm = item.hasT3Entry ? t3Rank++ : 0;
-    });
-
-    // Overall Ranking
-    const sortedOverall = [...group].sort((a, b) => {
-      if (a.hasTeacherEntry && !b.hasTeacherEntry) return -1;
-      if (!a.hasTeacherEntry && b.hasTeacherEntry) return 1;
-      return b.meanScore - a.meanScore || b.grandTotal - a.grandTotal;
-    });
-    let overallRank = 1;
-    sortedOverall.forEach(item => {
-      item.rankOverall = item.hasTeacherEntry ? overallRank++ : 0;
-    });
+    // Grade Overall Ranking (Grand Total across all terms)
+    assignRanks(i => i.grandTotal, (i, r) => { i.rankOverall = r; });
   });
 
   return rawItems;

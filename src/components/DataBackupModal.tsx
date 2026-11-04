@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { useSchool } from '../context/SchoolContext';
 import { useAuth } from '../context/AuthContext';
-import { Database, Download, Upload, Copy, Check, X, Trash2, CheckCircle2, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { Database, Download, Upload, Copy, Check, X, Trash2, CheckCircle2, ShieldCheck, ShieldAlert, Cloud, ExternalLink } from 'lucide-react';
+import { 
+  exportDatabaseBackupToGoogleDrive, 
+  getDriveAccessToken, 
+  signInWithGoogleDrive 
+} from '../services/googleDriveService';
 
 interface DataBackupModalProps {
   onClose: () => void;
@@ -14,6 +19,8 @@ export const DataBackupModal: React.FC<DataBackupModalProps> = ({ onClose }) => 
   const [importText, setImportText] = useState('');
   const [importStatus, setImportStatus] = useState<string | null>(null);
   const [erasedNotice, setErasedNotice] = useState(false);
+  const [driveSaving, setDriveSaving] = useState(false);
+  const [driveResult, setDriveResult] = useState<{ success: boolean; link?: string; message?: string } | null>(null);
 
   // Security gate: strictly restricted to the 2 designated Primary Administrators
   if (!canAccessSchoolData) {
@@ -137,21 +144,81 @@ export const DataBackupModal: React.FC<DataBackupModalProps> = ({ onClose }) => 
             <span className="font-bold text-slate-800 uppercase tracking-wider text-[11px] block">
               Export School Backup
             </span>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleDownload}
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-emerald-800 hover:bg-emerald-900 text-white rounded-lg font-semibold transition-colors shadow-xs"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Download Backup (.json)</span>
+                </button>
+                <button
+                  onClick={handleCopy}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg font-semibold transition-colors"
+                >
+                  {copied ? <Check className="w-4 h-4 text-emerald-700" /> : <Copy className="w-4 h-4" />}
+                  <span>{copied ? 'Copied' : 'Copy JSON'}</span>
+                </button>
+              </div>
+
               <button
-                onClick={handleDownload}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-emerald-800 hover:bg-emerald-900 text-white rounded-lg font-semibold transition-colors shadow-xs"
+                onClick={async () => {
+                  setDriveSaving(true);
+                  setDriveResult(null);
+                  try {
+                    let token = getDriveAccessToken();
+                    if (!token) {
+                      const authRes = await signInWithGoogleDrive();
+                      token = authRes.accessToken;
+                    }
+                    const uploaded = await exportDatabaseBackupToGoogleDrive(exportJSON());
+                    setDriveResult({
+                      success: true,
+                      link: uploaded.webViewLink,
+                      message: 'Full Institutional Database Backup saved directly to Google Drive!'
+                    });
+                  } catch (err: any) {
+                    setDriveResult({
+                      success: false,
+                      message: err.message || 'Failed to save database backup to Google Drive.'
+                    });
+                  } finally {
+                    setDriveSaving(false);
+                  }
+                }}
+                disabled={driveSaving}
+                className="w-full inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg font-semibold transition-colors shadow-xs"
               >
-                <Download className="w-4 h-4" />
-                <span>Download Backup (.json)</span>
+                {driveSaving ? (
+                  <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                ) : (
+                  <Cloud className="w-4 h-4" />
+                )}
+                <span>{driveSaving ? 'Saving to Google Drive...' : 'Save Full Backup to Google Drive'}</span>
               </button>
-              <button
-                onClick={handleCopy}
-                className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg font-semibold transition-colors"
-              >
-                {copied ? <Check className="w-4 h-4 text-emerald-700" /> : <Copy className="w-4 h-4" />}
-                <span>{copied ? 'Copied' : 'Copy JSON'}</span>
-              </button>
+
+              {driveResult && (
+                <div className={`p-2.5 rounded-lg border text-xs flex items-center justify-between gap-2 ${
+                  driveResult.success ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-rose-50 border-rose-200 text-rose-900'
+                }`}>
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${driveResult.success ? 'text-emerald-600' : 'text-rose-600'}`} />
+                    <span className="text-[11px]">{driveResult.message}</span>
+                  </div>
+                  {driveResult.link && (
+                    <a
+                      href={driveResult.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 font-semibold underline text-blue-700 hover:text-blue-800 text-[11px] shrink-0"
+                    >
+                      <span>View in Drive</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
